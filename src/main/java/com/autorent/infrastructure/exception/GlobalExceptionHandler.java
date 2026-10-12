@@ -1,5 +1,6 @@
 package com.autorent.infrastructure.exception;
 
+import com.autorent.domain.exception.AutoNoDisponibleException;
 import com.autorent.domain.exception.ClienteDuplicadoException;
 import com.autorent.domain.exception.PlacaDuplicadaException;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ClienteDuplicadoException.class)
     public ResponseEntity<Map<String, Object>> ClienteDuplicadoException(ClienteDuplicadoException ex) {
+        Map<String, Object> response = Map.of("fecha",LocalDateTime.now().toString(),
+                "estado", HttpStatus.CONFLICT.value(),"error","conflicto"
+                ,"mensaje",ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(AutoNoDisponibleException.class)
+    public ResponseEntity<Map<String, Object>> AutoNoDisponibleException(AutoNoDisponibleException ex) {
         Map<String, Object> response = Map.of("fecha",LocalDateTime.now().toString(),
                 "estado", HttpStatus.CONFLICT.value(),"error","conflicto"
                 ,"mensaje",ex.getMessage());

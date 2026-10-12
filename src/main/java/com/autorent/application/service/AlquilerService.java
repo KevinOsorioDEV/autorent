@@ -1,5 +1,7 @@
 package com.autorent.application.service;
 
+import com.autorent.application.port.input.ConsultarAlquileresUseCase;
+import com.autorent.application.port.input.ConsultarClientesUseCase;
 import com.autorent.application.port.input.CrearAlquilerUseCase;
 import com.autorent.application.port.output.AlquilerRepositoryPort;
 import com.autorent.application.port.output.AutoRepositoryPort;
@@ -15,9 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
-public class AlquilerService implements CrearAlquilerUseCase {
+public class AlquilerService implements CrearAlquilerUseCase, ConsultarAlquileresUseCase {
     private final AlquilerRepositoryPort alquilerRepositoryPort;
     private final ClienteRepositoryPort clienteRepositoryPort;
     private final AutoRepositoryPort autoRepositoryPort;
@@ -63,4 +66,7 @@ public class AlquilerService implements CrearAlquilerUseCase {
         return alquilerRepositoryPort.guardar(alquiler);
     }
 
+    @Override
+    public List<Alquiler> listarAlquileres(){
+    return alquilerRepositoryPort.listarAlquileres();}
 }

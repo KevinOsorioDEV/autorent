@@ -2,14 +2,20 @@ package com.autorent.infrastructure.adapter.output.persistence.adapter;
 
 import com.autorent.application.port.output.AlquilerRepositoryPort;
 import com.autorent.domain.model.Alquiler;
+import com.autorent.domain.model.Cliente;
+import com.autorent.domain.model.EstadoAlquiler;
 import com.autorent.infrastructure.adapter.output.persistence.entity.AlquilerEntity;
+import com.autorent.infrastructure.adapter.output.persistence.entity.ClienteEntity;
 import com.autorent.infrastructure.adapter.output.persistence.entity.EstadoAlquilerEntity;
 import com.autorent.infrastructure.adapter.output.persistence.repository.AlquilerJpaRepository;
 import com.autorent.infrastructure.adapter.output.persistence.repository.AutoJpaRepository;
 import com.autorent.infrastructure.adapter.output.persistence.repository.ClienteJpaRepository;
 import com.autorent.infrastructure.adapter.output.persistence.repository.EstadoAlquilerJpaRepository;
 import jakarta.persistence.Column;
+import jakarta.websocket.ClientEndpoint;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class AlquilerPersistenceAdapter implements AlquilerRepositoryPort {
@@ -47,5 +53,23 @@ public class AlquilerPersistenceAdapter implements AlquilerRepositoryPort {
         alquiler.setId(savedEntity.getId());
 
         return alquiler;
+    }
+
+    @Override
+    public List<Alquiler>  listarAlquileres() {
+        return alquilerJpaRepository.findAll().stream().map(this::toDomain).toList();
+    }
+
+    private Alquiler toDomain(AlquilerEntity entity) {
+        return Alquiler.builder()
+                .id(entity.getId())
+                .clienteId(entity.getCliente().getId())
+                .autoId(entity.getAuto().getId())
+                .fechaInicio(entity.getFechaInicio())
+                .fechaFin(entity.getFechaFin())
+                .cantidadDias(entity.getCantidadDias())
+                .valorTotal(entity.getValorTotal())
+                .estado(EstadoAlquiler.valueOf(entity.getEstado().getDescripcion()))
+                .build();
     }
 }

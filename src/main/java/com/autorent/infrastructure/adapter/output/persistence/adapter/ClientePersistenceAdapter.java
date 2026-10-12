@@ -7,6 +7,7 @@ import com.autorent.infrastructure.adapter.output.persistence.repository.Cliente
 import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -38,14 +39,22 @@ public class ClientePersistenceAdapter implements ClienteRepositoryPort {
 
     @Override
     public Optional<Cliente> buscarPorId(Long id) {
-        return clienteJpaRepository.findById(id).map(entity -> {
-            return Cliente.builder()
-                    .id(entity.getId())
-                    .nombre(entity.getNombre())
-                    .documento(entity.getDocumento())
-                    .telefono(entity.getTelefono())
-                    .email(entity.getEmail())
-                    .build();
-        });
+        return clienteJpaRepository.findById(id).map(this::toDomain);
+
+    }
+
+    @Override
+    public List<Cliente> listarClientes(){
+        return clienteJpaRepository.findAll().stream().map(this::toDomain).toList();
+    }
+
+    private Cliente toDomain(ClienteEntity entity){
+        return Cliente.builder()
+                .id(entity.getId())
+                .nombre(entity.getNombre())
+                .documento(entity.getDocumento())
+                .telefono(entity.getTelefono())
+                .email(entity.getEmail())
+                .build();
     }
 }

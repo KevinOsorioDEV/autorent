@@ -9,12 +9,13 @@ import com.autorent.infrastructure.adapter.output.persistence.repository.AutoJpa
 import com.autorent.infrastructure.adapter.output.persistence.repository.EstadoAutoJpaRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
 public class AutoPersistenceAdapter implements AutoRepositoryPort {
 
-    private final AutoJpaRepository autoRepository;
+    private final AutoJpaRepository     autoRepository;
     private final EstadoAutoJpaRepository estadoRepository;
 
     public AutoPersistenceAdapter(AutoJpaRepository autoRepository, EstadoAutoJpaRepository estadoRepository) {
@@ -38,8 +39,7 @@ public class AutoPersistenceAdapter implements AutoRepositoryPort {
         entity.setPrecioPorDia(auto.getPrecioPorDia());
 
         // Buscamos el estado en la base de datos (PostgreSQL) usando el valor del ENUM
-        EstadoAutoEntity estadoEntity = estadoRepository.findByDescripcion(auto.getEstado().name())
-                .orElseThrow(() -> new RuntimeException("Estado no encontrado en BD"));
+        EstadoAutoEntity estadoEntity = estadoRepository.findByDescripcion(auto.getEstado().name()).orElseThrow(() -> new RuntimeException("Estado no encontrado en BD"));
 
         entity.setEstado(estadoEntity);
 
@@ -55,20 +55,28 @@ public class AutoPersistenceAdapter implements AutoRepositoryPort {
     }
 
     @Override
+    public List<Auto> listarAutos() {
+
+        return autoRepository.findAll().stream().map(this::toDomain).toList();
+    }
+
+
+    @Override
     public Optional<Auto> buscarPorId(Long id) {
-        return autoRepository.findById(id).map(
-                autoEntity -> {
-                    return Auto.builder()
-                            .id(autoEntity.getId())
-                            .placa(autoEntity.getPlaca())
-                            .marca(autoEntity.getMarca())
-                            .modelo(autoEntity.getModelo())
-                            .anio(autoEntity.getAnio())
-                            .deposito(autoEntity.getDeposito())
-                            .precioPorDia(autoEntity.getPrecioPorDia())
-                            .estado(EstadoAuto.valueOf(autoEntity.getEstado().getDescripcion()))
-                            .build();
-                }
-        );
+        return autoRepository.findById(id).map(this::toDomain);
+
+    }
+
+    private Auto toDomain(AutoEntity auto) {
+        return Auto.builder()
+                .id(auto.getId())
+                .placa(auto.getPlaca())
+                .marca(auto.getMarca())
+                .modelo(auto.getModelo())
+                .anio(auto.getAnio())
+                .deposito(auto.getDeposito())
+                .precioPorDia(auto.getPrecioPorDia())
+                .estado(EstadoAuto.valueOf(auto.getEstado().getDescripcion()))
+                .build();
     }
 }
