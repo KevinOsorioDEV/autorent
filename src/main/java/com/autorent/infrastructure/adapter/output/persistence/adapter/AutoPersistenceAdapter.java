@@ -9,6 +9,8 @@ import com.autorent.infrastructure.adapter.output.persistence.repository.AutoJpa
 import com.autorent.infrastructure.adapter.output.persistence.repository.EstadoAutoJpaRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 public class AutoPersistenceAdapter implements AutoRepositoryPort {
 
@@ -23,6 +25,11 @@ public class AutoPersistenceAdapter implements AutoRepositoryPort {
     @Override
     public Auto guardar(Auto auto) {
         AutoEntity entity = new AutoEntity();
+
+        if (auto.getId() != null) {
+            entity.setId(auto.getId());
+        }
+
         entity.setPlaca(auto.getPlaca());
         entity.setMarca(auto.getMarca());
         entity.setModelo(auto.getModelo());
@@ -45,5 +52,23 @@ public class AutoPersistenceAdapter implements AutoRepositoryPort {
 
     public boolean existsByPlaca(String placa) {
         return autoRepository.existsByPlaca(placa);
+    }
+
+    @Override
+    public Optional<Auto> buscarPorId(Long id) {
+        return autoRepository.findById(id).map(
+                autoEntity -> {
+                    return Auto.builder()
+                            .id(autoEntity.getId())
+                            .placa(autoEntity.getPlaca())
+                            .marca(autoEntity.getMarca())
+                            .modelo(autoEntity.getModelo())
+                            .anio(autoEntity.getAnio())
+                            .deposito(autoEntity.getDeposito())
+                            .precioPorDia(autoEntity.getPrecioPorDia())
+                            .estado(EstadoAuto.valueOf(autoEntity.getEstado().getDescripcion()))
+                            .build();
+                }
+        );
     }
 }

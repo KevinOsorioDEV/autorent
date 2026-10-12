@@ -32,4 +32,5 @@ public class AutoEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "estado_id", nullable = false)
     private EstadoAutoEntity estado;
+
 }

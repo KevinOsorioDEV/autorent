@@ -6,6 +6,9 @@ import com.autorent.infrastructure.adapter.output.persistence.entity.ClienteEnti
 import com.autorent.infrastructure.adapter.output.persistence.repository.ClienteJpaRepository;
 import org.springframework.stereotype.Component;
 
+import java.security.PublicKey;
+import java.util.Optional;
+
 @Component
 public class ClientePersistenceAdapter implements ClienteRepositoryPort {
     private final ClienteJpaRepository clienteJpaRepository;
@@ -28,9 +31,21 @@ public class ClientePersistenceAdapter implements ClienteRepositoryPort {
         return cliente;
 
     }
+
     public boolean existsBydocumento(String identificacion){
         return clienteJpaRepository.existsBydocumento(identificacion);
-
     }
 
+    @Override
+    public Optional<Cliente> buscarPorId(Long id) {
+        return clienteJpaRepository.findById(id).map(entity -> {
+            return Cliente.builder()
+                    .id(entity.getId())
+                    .nombre(entity.getNombre())
+                    .documento(entity.getDocumento())
+                    .telefono(entity.getTelefono())
+                    .email(entity.getEmail())
+                    .build();
+        });
+    }
 }
