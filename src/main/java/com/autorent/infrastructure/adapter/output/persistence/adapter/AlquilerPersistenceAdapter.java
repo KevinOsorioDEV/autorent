@@ -16,6 +16,7 @@ import jakarta.websocket.ClientEndpoint;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class AlquilerPersistenceAdapter implements AlquilerRepositoryPort {
@@ -37,6 +38,10 @@ public class AlquilerPersistenceAdapter implements AlquilerRepositoryPort {
     @Override
     public Alquiler guardar(Alquiler alquiler) {
         AlquilerEntity entity = new AlquilerEntity();
+
+        if (alquiler.getId() != null) {
+            entity.setId(alquiler.getId());
+        }
         entity.setCliente(clienteJpaRepository.findById(alquiler.getClienteId()).orElseThrow());
         entity.setAuto(autoJpaRepository.findById(alquiler.getAutoId()).orElseThrow());
 
@@ -56,8 +61,8 @@ public class AlquilerPersistenceAdapter implements AlquilerRepositoryPort {
     }
 
     @Override
-    public List<Alquiler>  listarAlquileres() {
-        return alquilerJpaRepository.findAll().stream().map(this::toDomain).toList();
+    public Optional<Alquiler> buscarPorId(Long id){
+        return alquilerJpaRepository.findById(id).map(this::toDomain);
     }
 
     private Alquiler toDomain(AlquilerEntity entity) {
@@ -72,4 +77,6 @@ public class AlquilerPersistenceAdapter implements AlquilerRepositoryPort {
                 .estado(EstadoAlquiler.valueOf(entity.getEstado().getDescripcion()))
                 .build();
     }
+
+
 }

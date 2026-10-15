@@ -1,5 +1,7 @@
 package com.autorent.infrastructure.adapter.input.rest;
 
+import com.autorent.application.dto.AlquilerDetalladoDto;
+import com.autorent.application.port.input.ConsultarAlquilerDetalldoUseCase;
 import com.autorent.application.port.input.ConsultarAlquileresUseCase;
 import com.autorent.application.port.input.CrearAlquilerUseCase;
 import com.autorent.domain.model.Alquiler;
@@ -14,11 +16,13 @@ import java.util.List;
 public class AlquilerController {
     private final CrearAlquilerUseCase crearAlquilerUseCase;
     private final ConsultarAlquileresUseCase consultarAlquileresUseCase;
+    private final ConsultarAlquilerDetalldoUseCase consultarAlquilerDetalldoUseCase;
 
     public AlquilerController(CrearAlquilerUseCase crearAlquilerUseCase,
-                              ConsultarAlquileresUseCase consultarAlquileresUseCase) {
+                              ConsultarAlquileresUseCase consultarAlquileresUseCase,ConsultarAlquilerDetalldoUseCase consultarAlquilerDetalldoUseCase) {
         this.crearAlquilerUseCase = crearAlquilerUseCase;
         this.consultarAlquileresUseCase = consultarAlquileresUseCase;
+        this.consultarAlquilerDetalldoUseCase = consultarAlquilerDetalldoUseCase;
     }
 
     public static class CrearAlquilerRequest {
@@ -37,9 +41,18 @@ public class AlquilerController {
         return new ResponseEntity<>(alquilerCreado, HttpStatus.CREATED);
     }
 
-    @GetMapping
-    public ResponseEntity<List<Alquiler>> listarAlquileres() {
-        List<Alquiler> alquileres = consultarAlquileresUseCase.listarAlquileres();
-        return new ResponseEntity<>(alquileres, HttpStatus.OK);
+    @GetMapping("/detallados")
+    public ResponseEntity<List<AlquilerDetalladoDto>> listarAlquileresDetallados() {
+        List<AlquilerDetalladoDto> alquilerDetallado = consultarAlquilerDetalldoUseCase.listarTodosAlquilerDetallados();
+        return new ResponseEntity<>(alquilerDetallado, HttpStatus.OK);
+    }
+    @GetMapping("/{id}/detallado")
+    public AlquilerDetalladoDto obtenerDetallado(@PathVariable Long id) {
+        return consultarAlquilerDetalldoUseCase.consultarAlquilerDetalladoPorId(id);
+    }
+
+    @PutMapping("/{id}/finalizar")
+    public Alquiler finalizar(@PathVariable Long id) {
+        return consultarAlquileresUseCase.finalizar(id);
     }
 }

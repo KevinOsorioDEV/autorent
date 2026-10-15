@@ -10,4 +10,5 @@ public interface AutoRepositoryPort {
     boolean existsByPlaca(String placa);
     Optional<Auto> buscarPorId(Long id);
     List<Auto> listarAutos();
+    List<Auto> obtenerAutosDisponibles();
 }

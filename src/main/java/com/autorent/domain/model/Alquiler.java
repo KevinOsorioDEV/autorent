@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Alquiler {
-    private long id;
+    private Long id;
     private Long clienteId;
     private Long autoId;
     private LocalDate fechaInicio;

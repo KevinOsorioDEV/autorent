@@ -35,4 +35,14 @@ public class AutoController {
         return new ResponseEntity<>(autos, HttpStatus.OK);
     }
 
+    @GetMapping("/{id}")
+    public Auto obtenerAutosPorId(@PathVariable Long id) {
+        return consultarAutosUseCase.obtenerAutosPorId(id);
+    }
+
+    @GetMapping("/disponibles")
+    public List<Auto> obtenerAutosDisponibles() {
+        return consultarAutosUseCase.obtenerAutosDiponibles();
+    }
+
 }

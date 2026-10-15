@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface ConsultarAutosUseCase {
     List<Auto> listarAutos();
+    Auto obtenerAutosPorId(Long id);
+    List<Auto> obtenerAutosDiponibles();
 }

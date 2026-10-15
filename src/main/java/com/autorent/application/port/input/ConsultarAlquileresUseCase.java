@@ -5,5 +5,5 @@ import com.autorent.domain.model.Alquiler;
 import java.util.List;
 
 public interface ConsultarAlquileresUseCase {
-    List<Alquiler> listarAlquileres();
+    Alquiler finalizar(Long id);
 }

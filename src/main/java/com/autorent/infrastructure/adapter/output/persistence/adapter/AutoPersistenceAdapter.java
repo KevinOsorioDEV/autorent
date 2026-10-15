@@ -39,7 +39,9 @@ public class AutoPersistenceAdapter implements AutoRepositoryPort {
         entity.setPrecioPorDia(auto.getPrecioPorDia());
 
         // Buscamos el estado en la base de datos (PostgreSQL) usando el valor del ENUM
-        EstadoAutoEntity estadoEntity = estadoRepository.findByDescripcion(auto.getEstado().name()).orElseThrow(() -> new RuntimeException("Estado no encontrado en BD"));
+        EstadoAutoEntity estadoEntity =
+                estadoRepository.findByDescripcion(auto.getEstado().name())
+                        .orElseThrow(() -> new RuntimeException("Estado no encontrado en BD"));
 
         entity.setEstado(estadoEntity);
 
@@ -65,6 +67,19 @@ public class AutoPersistenceAdapter implements AutoRepositoryPort {
     public Optional<Auto> buscarPorId(Long id) {
         return autoRepository.findById(id).map(this::toDomain);
 
+    }
+
+    @Override
+    public List<Auto> obtenerAutosDisponibles(){
+
+        EstadoAutoEntity estadoDisponible = estadoRepository
+                .findByDescripcion("DISPONIBLE")
+                .orElseThrow(() -> new RuntimeException("Estado DISPONIBLE no configurado en BD"));
+
+        return autoRepository.findByEstado(estadoDisponible)
+                .stream()
+                .map(this::toDomain)
+                .toList();
     }
 
     private Auto toDomain(AutoEntity auto) {
