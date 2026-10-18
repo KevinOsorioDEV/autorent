@@ -23,9 +23,13 @@ import java.util.Optional;
 
     @Override
     public Auto registrar(Auto auto) {
-        if (autoRepositoryPort.existsByPlaca(auto.getPlaca())) {
+
+        String placaLimpia = auto.getPlaca().trim();
+
+        if (autoRepositoryPort.existsByPlaca(placaLimpia)) {
             throw new PlacaDuplicadaException(auto.getPlaca());
         }
+        auto.setPlaca(placaLimpia);
         auto.setEstado(EstadoAuto.DISPONIBLE);
 
         return autoRepositoryPort.guardar(auto);

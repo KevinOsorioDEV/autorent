@@ -2,14 +2,15 @@ package com.autorent.infrastructure.adapter.input.rest;
 
 import com.autorent.application.port.input.ConsultarAutosUseCase;
 import com.autorent.application.port.input.RegistrarAutoUseCase;
-import com.autorent.application.port.output.AutoRepositoryPort;
+import com.autorent.domain.exception.AutoNoEncontradoException;
+import com.autorent.domain.exception.PlacaDuplicadaException;
 import com.autorent.domain.model.Auto;
-import com.autorent.infrastructure.adapter.output.persistence.repository.AutoJpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/autos")
@@ -24,9 +25,14 @@ public class AutoController {
     }
 
     @PostMapping
-    public ResponseEntity<Auto> registrarAuto(@RequestBody Auto auto) {
+    public ResponseEntity<?> registrarAuto(@RequestBody Auto auto) {
+        try {
         Auto autoCreado = registrarAutoUseCase.registrar(auto);
-        return new ResponseEntity<>(autoCreado, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(autoCreado);
+        }catch (PlacaDuplicadaException ex){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("Mensaje", ex.getMessage()));
+        }
+
     }
 
     @GetMapping
@@ -36,8 +42,14 @@ public class AutoController {
     }
 
     @GetMapping("/{id}")
-    public Auto obtenerAutosPorId(@PathVariable Long id) {
-        return consultarAutosUseCase.obtenerAutosPorId(id);
+    public ResponseEntity<?> obtenerAutosPorId(@PathVariable Long id) {
+        try {
+            Auto auto = consultarAutosUseCase.obtenerAutosPorId(id);
+            return ResponseEntity.status(HttpStatus.OK).body(auto);
+        } catch (AutoNoEncontradoException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("Mensaje", ex.getMessage()));
+        }
     }
 
     @GetMapping("/disponibles")

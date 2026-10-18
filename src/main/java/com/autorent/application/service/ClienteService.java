@@ -4,6 +4,7 @@ import com.autorent.application.port.input.ConsultarClientesUseCase;
 import com.autorent.application.port.input.RegistrarClienteUseCase;
 import com.autorent.application.port.output.ClienteRepositoryPort;
 import com.autorent.domain.exception.ClienteDuplicadoException;
+import com.autorent.domain.exception.DatoRequeridoException;
 import com.autorent.domain.model.Cliente;
 import org.springframework.stereotype.Service;
 
@@ -20,10 +21,22 @@ public ClienteService(ClienteRepositoryPort clienteRepositoryPort) {
 
 @Override
     public Cliente registrarCliente(Cliente cliente){
-    if(clienteRepositoryPort.existsBydocumento(cliente.getDocumento())){
-        throw new ClienteDuplicadoException(cliente.getDocumento());
-    }
-    return clienteRepositoryPort.registrar(cliente);
+   if (cliente.getNombre() == null || cliente.getNombre().trim().isEmpty())
+        throw new DatoRequeridoException("Nombre requerido");
+
+   if (cliente.getDocumento() == null || cliente.getDocumento().trim().isEmpty())
+        throw new DatoRequeridoException("Documento requerido");
+
+   if (cliente.getEmail() == null || cliente.getEmail().trim().isEmpty())
+       throw new DatoRequeridoException("Email requerido");
+
+   String documentoLimpio = cliente.getDocumento().trim();
+   cliente.setDocumento(documentoLimpio);
+
+   if (clienteRepositoryPort.existsBydocumento(cliente.getDocumento()))
+       throw new ClienteDuplicadoException("Documento existente");
+
+   return clienteRepositoryPort.registrar(cliente);
 }
 
 @Override
