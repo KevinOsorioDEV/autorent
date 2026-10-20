@@ -1,10 +1,8 @@
-package com.autorent.application.dto;
-
-import jakarta.persistence.criteria.CriteriaBuilder;
+package com.autorent.application.dto.response;
 
 import java.time.LocalDate;
 
-public record AlquilerDetalladoDto(
+public record AlquilerDetalladoResponse(
         Long id,
         Integer clienteId,
         String clienteNombre,

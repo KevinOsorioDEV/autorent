@@ -33,6 +33,10 @@ public class ClientePersistenceAdapter implements ClienteRepositoryPort {
 
     }
 
+    public boolean existsByemail(String email){
+        return clienteJpaRepository.existsByemail(email);
+    }
+
     public boolean existsBydocumento(String identificacion){
         return clienteJpaRepository.existsBydocumento(identificacion);
     }
