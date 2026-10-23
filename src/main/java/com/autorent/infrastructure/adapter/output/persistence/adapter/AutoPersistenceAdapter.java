@@ -15,7 +15,7 @@ import java.util.Optional;
 @Component
 public class AutoPersistenceAdapter implements AutoRepositoryPort {
 
-    private final AutoJpaRepository     autoRepository;
+    private final AutoJpaRepository  autoRepository;
     private final EstadoAutoJpaRepository estadoRepository;
 
     public AutoPersistenceAdapter(AutoJpaRepository autoRepository, EstadoAutoJpaRepository estadoRepository) {
@@ -25,6 +25,11 @@ public class AutoPersistenceAdapter implements AutoRepositoryPort {
 
     @Override
     public Auto guardar(Auto auto) {
+
+        System.out.println("Placa: " + auto.getPlaca());
+        System.out.println("Depósito recibido: " + auto.getDeposito());
+        System.out.println("Precio por día recibido: " + auto.getPrecioPorDia());
+
         AutoEntity entity = new AutoEntity();
 
         if (auto.getId() != null) {
