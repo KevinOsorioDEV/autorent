@@ -1,361 +1,104 @@
-# 🚗 AutoRent — Sistema de Alquiler de Autos
+# AutoRent — API REST para alquiler de vehículos
 
-Microservicio para la gestión de alquiler de vehículos, desarrollado con **Java y Spring Boot** aplicando **Arquitectura Hexagonal (Ports and Adapters)** y **PostgreSQL** como mecanismo de persistencia.
+AutoRent es una API backend para administrar vehículos, clientes y alquileres. Está desarrollada con Java y Spring Boot, utiliza PostgreSQL para persistencia y organiza el código siguiendo el enfoque de **Arquitectura Hexagonal (Ports and Adapters)**.
 
-> Proyecto de clase — Programación Web Backend (UPCA)
-> Docente: Ing. Iván Devia Acosta
+> Proyecto académico. La documentación describe las rutas y clases encontradas en la rama `master` del repositorio.
 
----
+## Funcionalidades
 
-## 👥 Integrantes
+- Registrar y consultar vehículos, incluidos los que están disponibles.
+- Registrar y consultar clientes.
+- Crear alquileres validando la existencia del cliente y del vehículo, la cantidad de días y la disponibilidad del vehículo.
+- Calcular el valor del alquiler a partir del precio diario y la cantidad de días.
+- Consultar alquileres y su información detallada.
+- Finalizar alquileres y liberar el vehículo asociado.
+- Devolver códigos HTTP para resultados exitosos y errores de negocio.
 
-| Nombre                    | Rol |
-|---------------------------|-----|
-| _Kevin Osorio_            | _Desarrollador_ |
-
-
----
-
-## 🎯 Objetivo
-
-Permitir a una empresa de alquiler de autos controlar:
-
-- Qué vehículos tiene y cuáles están disponibles.
-- Qué clientes están registrados.
-- Cuándo inicia y finaliza un alquiler.
-- Cuánto debe pagar un cliente.
-
-El sistema está construido para que la tecnología externa (REST, PostgreSQL) pueda cambiar **sin modificar las reglas de negocio**.
-
----
-
-## 🛠️ Tecnologías utilizadas
+## Tecnologías
 
 | Tecnología | Uso |
-|------------|-----|
-| Java 17+ | Lenguaje principal |
-| Spring Boot | Framework y exposición de servicios REST |
-| Spring Web | Adaptador de entrada (Controllers) |
-| Spring Data JPA | Adaptador de salida (persistencia) |
-| PostgreSQL | Base de datos relacional |
-| PostgreSQL JDBC Driver | Conexión a PostgreSQL |
-| Bean Validation | Validación de datos de entrada |
-| Maven | Gestión de dependencias |
+|---|---|
+| Java 17 | Lenguaje del proyecto (`pom.xml`) |
+| Spring Boot 4.1.1 | Arranque y configuración de la aplicación (`pom.xml`) |
+| Spring Web MVC | Endpoints REST |
+| Spring Data JPA / Hibernate | Persistencia relacional |
+| PostgreSQL | Base de datos |
+| Lombok | Reducción de código repetitivo |
+| Maven Wrapper | Compilación y ejecución sin instalar Maven globalmente |
 
----
+## Arquitectura
 
-## ▶️ Cómo ejecutar el proyecto
+El diseño separa los adaptadores HTTP y de persistencia de las reglas de negocio. Los controladores invocan puertos de entrada; los servicios implementan esos puertos y usan el dominio junto con puertos de salida. Los adaptadores de persistencia implementan los puertos de salida usando Spring Data JPA.
 
-### Requisitos previos
+![Diagrama de arquitectura de AutoRent](docs/arquitectura.svg)
 
-- JDK 17 o superior
-- Maven 3.8+ (o usar el wrapper `mvnw` incluido)
-- PostgreSQL 14+ instalado y en ejecución (o vía Docker)
+- [Diagrama y explicación de la arquitectura](docs/arquitectura.md)
+- [Fuente Mermaid editable](docs/arquitectura.mmd)
+- [Diagrama SVG](docs/arquitectura.svg)
+- [Diagrama PNG](docs/arquitectura.png)
 
-### Pasos
+### Estructura principal
 
-```bash
-# 1. Clonar el repositorio
-git clone <URL_DEL_REPOSITORIO>
-cd autorent
-
-# 2. Crear la base de datos en PostgreSQL
-psql -U postgres -c "CREATE DATABASE autorent;"
-
-# 3. Configurar credenciales en src/main/resources/application.properties
-
-# 4. Compilar
-./mvnw clean install
-
-# 5. Ejecutar
-./mvnw spring-boot:run
+```text
+src/main/java/com/autorent/
+├── AutorentApplication.java
+├── domain/
+│   ├── model/                 # Auto, Cliente, Alquiler, estados y modelo detallado
+│   └── exception/             # Excepciones de negocio
+├── application/
+│   ├── port/
+│   │   ├── input/              # Contratos de los casos de uso
+│   │   └── output/             # Contratos de persistencia/consulta
+│   ├── service/                # AutoService, ClienteService, AlquilerService
+│   └── dto/
+│       ├── request/            # DTOs de entrada
+│       ├── response/           # DTOs de salida
+│       └── mapper/              # Conversión entre DTOs y modelos
+└── infrastructure/
+    └── adapter/
+        ├── input/rest/          # Controladores REST
+        └── output/persistence/
+            ├── adapter/         # Implementaciones de los puertos de salida
+            ├── entity/          # Entidades JPA
+            └── repository/      # Repositorios Spring Data JPA
 ```
 
-> Alternativa con Docker:
->
-> ```bash
-> docker run --name autorent-db -e POSTGRES_DB=autorent -e POSTGRES_USER=postgres \
->   -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
-> ```
+### Responsabilidad por capa
 
-La aplicación quedará disponible en: **http://localhost:8080**
+| Capa | Responsabilidad |
+|---|---|
+| `domain` | Modelos, estados y excepciones de negocio; no representa tablas JPA. |
+| `application.port.input` | Contratos de las acciones ofrecidas por la aplicación. |
+| `application.service` | Implementa los casos de uso, valida reglas y coordina operaciones. |
+| `application.port.output` | Declara las operaciones de consulta y persistencia requeridas por la aplicación. |
+| `infrastructure.adapter.input.rest` | Recibe las solicitudes HTTP y prepara las respuestas. |
+| `infrastructure.adapter.output.persistence` | Convierte entre modelos de dominio y entidades JPA y accede a PostgreSQL. |
 
-### Verificar los datos en PostgreSQL
+## Reglas de negocio principales
 
-Puedes consultar las tablas con `psql`, pgAdmin, DBeaver o la herramienta que prefieras:
+- Una placa no puede registrarse dos veces.
+- Los campos obligatorios de vehículo y cliente deben estar informados; los importes del vehículo deben ser mayores que cero.
+- El documento y el correo electrónico del cliente deben ser únicos; el correo debe tener un formato válido.
+- Para crear un alquiler deben existir el cliente y el vehículo, el vehículo debe estar `DISPONIBLE` y `cantidadDias` debe ser mayor que cero.
+- El sistema calcula `valorTotal = precioPorDia × cantidadDias`; el cliente de la API no envía el valor total.
+- Al crear un alquiler, el vehículo pasa a `ALQUILADO` y el alquiler queda `ACTIVO`.
+- Al finalizar un alquiler, el alquiler pasa a `FINALIZADO` y el vehículo vuelve a `DISPONIBLE`.
+- No se permite finalizar un alquiler que ya está finalizado.
 
-```bash
-psql -U postgres -d autorent
-```
+## Endpoints
 
-```sql
-SELECT * FROM autos;
-SELECT * FROM clientes;
-SELECT * FROM alquileres;
-```
+La URL base local es `http://localhost:8080`. Las rutas de clientes y alquileres están actualmente en **singular** (`/api/cliente` y `/api/alquiler`).
 
-> Los nombres de las tablas dependen de cómo anotes tus entidades JPA (`@Table`).
+### Vehículos
 
-### Configuración (`application.properties`)
+| Método | Ruta | Descripción | Respuestas principales |
+|---|---|---|---|
+| `POST` | `/api/autos` | Registrar vehículo | `201`, `400`, `409` |
+| `GET` | `/api/autos` | Listar vehículos | `200` |
+| `GET` | `/api/autos/{id}` | Consultar vehículo por ID | `200`, `404` |
+| `GET` | `/api/autos/disponibles` | Listar vehículos disponibles | `200` |
 
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/autorent
-spring.datasource.driver-class-name=org.postgresql.Driver
-spring.datasource.username=postgres
-spring.datasource.password=postgres
-spring.jpa.hibernate.ddl-auto=NONE
-spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
-spring.jpa.show-sql=true
-```
-
-Dependencia en `pom.xml`:
-
-```xml
-<dependency>
-    <groupId>org.postgresql</groupId>
-    <artifactId>postgresql</artifactId>
-    <scope>runtime</scope>
-</dependency>
-```
-
----
-
-## 🏗️ Arquitectura
-
-El proyecto implementa **Arquitectura Hexagonal**. El núcleo (dominio + aplicación) no conoce a Spring, JPA ni PostgreSQL; son los adaptadores quienes se conectan a él a través de puertos (interfaces).
-
-### Diagrama
-
-```
-                    ┌──────────────────────────┐
-                    │   Cliente HTTP / Postman │
-                    └────────────┬─────────────┘
-                                 │
- ════════════════════ INFRAESTRUCTURA ════════════════════
-                                 ▼
-                    ┌──────────────────────────┐
-                    │        REST API          │
-                    │   Adaptador de entrada   │
-                    │ (Auto/Cliente/Alquiler   │
-                    │       Controller)        │
-                    └────────────┬─────────────┘
- ═══════════════════════ NÚCLEO ═════════════════════════
-                                 ▼
-                    ┌──────────────────────────┐
-                    │   PUERTOS DE ENTRADA     │
-                    │   (Use Cases)            │
-                    └────────────┬─────────────┘
-                                 ▼
-                    ┌──────────────────────────┐
-                    │  APLICACIÓN (Services)   │
-                    │  Orquesta casos de uso   │
-                    └────────────┬─────────────┘
-                                 ▼
-                    ┌──────────────────────────┐
-                    │        DOMINIO           │
-                    │  Auto · Cliente · Alquiler│
-                    │  + reglas de negocio     │
-                    └────────────┬─────────────┘
-                                 ▼
-                    ┌──────────────────────────┐
-                    │   PUERTOS DE SALIDA      │
-                    │   (Repository Ports)     │
-                    └────────────┬─────────────┘
- ════════════════════ INFRAESTRUCTURA ════════════════════
-                                 ▼
-                    ┌──────────────────────────┐
-                    │  Adaptadores de          │
-                    │  persistencia            │
-                    │  (PersistenceAdapter +   │
-                    │   Spring Data JPA)       │
-                    └────────────┬─────────────┘
-                                 ▼
-                          ┌────────────┐
-                          │ PostgreSQL │
-                          └────────────┘
-```
-
-### Estructura de paquetes
-
-```
-com.autorent
-│
-├── domain
-│   ├── model
-│   │   ├── Auto.java
-│   │   ├── Cliente.java
-│   │   └── Alquiler.java
-│   └── exception
-│       ├── AutoNoDisponibleException.java
-│       ├── AutoNoEncontradoException.java
-│       ├── ClienteNoEncontradoException.java
-│       └── ...
-│
-├── application
-│   ├── port
-│   │   ├── input
-│   │   │   ├── RegistrarAutoUseCase.java
-│   │   │   ├── RegistrarClienteUseCase.java
-│   │   │   ├── CrearAlquilerUseCase.java
-│   │   │   ├── FinalizarAlquilerUseCase.java
-│   │   │   └── ConsultarAutosDisponiblesUseCase.java
-│   │   └── output
-│   │       ├── AutoRepositoryPort.java
-│   │       ├── ClienteRepositoryPort.java
-│   │       └── AlquilerRepositoryPort.java
-│   └── service
-│       ├── AutoService.java
-│       ├── ClienteService.java
-│       └── AlquilerService.java
-│
-└── infrastructure
-    ├── adapter
-    │   ├── input
-    │   │   └── rest
-    │   │       ├── AutoController.java
-    │   │       ├── ClienteController.java
-    │   │       └── AlquilerController.java
-    │   └── output
-    │       └── persistence
-    │           ├── entity       (AutoEntity, ClienteEntity, AlquilerEntity)
-    │           ├── repository   (AutoJpaRepository, ClienteJpaRepository, AlquilerJpaRepository)
-    │           └── adapter      (AutoPersistenceAdapter, ClientePersistenceAdapter, AlquilerPersistenceAdapter)
-    └── config
-        └── BeanConfiguration.java
-```
-
-### Responsabilidad de cada capa
-
-| Capa | Responsabilidad | Depende de |
-|------|-----------------|------------|
-| **Dominio** | Entidades y reglas de negocio | Nada (Java puro) |
-| **Aplicación** | Casos de uso y servicios que coordinan el flujo | Dominio |
-| **Puertos de entrada** | Operaciones que la aplicación ofrece | Dominio |
-| **Puertos de salida** | Operaciones que la aplicación necesita del exterior | Dominio |
-| **Adaptadores de entrada** | Reciben HTTP y llaman a los casos de uso | Puertos de entrada |
-| **Adaptadores de salida** | Implementan los puertos usando Spring Data JPA + PostgreSQL | Puertos de salida |
-
-### Flujo de `POST /api/alquileres`
-
-```
-Cliente HTTP
-   ↓
-AlquilerController            (adaptador de entrada)
-   ↓
-CrearAlquilerUseCase          (puerto de entrada)
-   ↓
-AlquilerService               (aplicación)
-   ├─► ClienteRepositoryPort  → ClientePersistenceAdapter → ClienteJpaRepository → PostgreSQL   (verifica que el cliente exista)
-   ├─► AutoRepositoryPort     → AutoPersistenceAdapter    → AutoJpaRepository    → PostgreSQL   (busca el auto y valida disponibilidad)
-   ├─► Dominio: calcula valorTotal y cambia el auto a ALQUILADO
-   ├─► AutoRepositoryPort     → guarda el auto actualizado
-   └─► AlquilerRepositoryPort → AlquilerPersistenceAdapter → AlquilerJpaRepository → PostgreSQL (guarda el alquiler)
-```
-
-**Qué ocurre con cada entidad:**
-
-- **Cliente:** solo se consulta para verificar que existe.
-- **Auto:** se consulta, se valida que esté `DISPONIBLE` y pasa a `ALQUILADO`.
-- **Alquiler:** se crea con estado `ACTIVO` y con el `valorTotal` calculado por el sistema.
-
-### Separación dominio / persistencia
-
-Las clases del dominio (`Auto`, `Cliente`, `Alquiler`) **no** tienen anotaciones de JPA ni de Spring. Las entidades de persistencia (`AutoEntity`, `ClienteEntity`, `AlquilerEntity`) viven en la infraestructura, y los adaptadores de persistencia son los responsables de convertir entre ambas.
-
----
-
-## 📦 Modelo de datos
-
-### Auto
-
-| Campo | Descripción |
-|-------|-------------|
-| `id` | Identificador |
-| `placa` | Placa del vehículo |
-| `marca` | Marca |
-| `modelo` | Modelo |
-| `anio` | Año |
-| `precioPorDia` | Valor del alquiler por día |
-| `estado` | `DISPONIBLE`, `ALQUILADO`, `MANTENIMIENTO` |
-
-### Cliente
-
-| Campo | Descripción |
-|-------|-------------|
-| `id` | Identificador |
-| `nombre` | Nombre completo |
-| `documento` | Documento de identificación (único) |
-| `telefono` | Teléfono |
-| `email` | Correo electrónico |
-
-### Alquiler
-
-| Campo | Descripción |
-|-------|-------------|
-| `id` | Identificador |
-| `clienteId` | Cliente que realiza el alquiler |
-| `autoId` | Auto alquilado |
-| `fechaInicio` | Fecha de inicio |
-| `fechaFin` | Fecha de finalización |
-| `cantidadDias` | Cantidad de días |
-| `valorTotal` | Valor calculado por el sistema |
-| `estado` | `ACTIVO`, `FINALIZADO` |
-
----
-
-## 📜 Reglas de negocio
-
-1. **Solo se pueden alquilar autos disponibles.** Un auto `ALQUILADO` o en `MANTENIMIENTO` no puede alquilarse.
-2. **Al alquilar, el auto pasa de `DISPONIBLE` a `ALQUILADO`.**
-3. **Al finalizar un alquiler, el auto vuelve a `DISPONIBLE`.**
-4. **No se puede finalizar dos veces el mismo alquiler.**
-5. **La cantidad de días debe ser mayor que cero** (no se aceptan `0`, `-1`, `-5`, etc.).
-6. **El valor total se calcula automáticamente:** `valorTotal = precioPorDia × cantidadDias`. El cliente nunca envía este valor.
-
-### Validaciones
-
-| Entidad | Validaciones |
-|---------|--------------|
-| **Auto** | Placa, marca y modelo obligatorios; precio por día mayor que cero |
-| **Cliente** | Nombre y documento obligatorios; email válido; documento no repetido |
-| **Alquiler** | Cliente existente; auto existente; auto disponible; días > 0; no finalizar dos veces |
-
----
-
-## 🌐 Endpoints
-
-### Autos
-
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| `POST` | `/api/autos` | Registrar un auto |
-| `GET` | `/api/autos/{id}` | Consultar auto por ID |
-| `GET` | `/api/autos/disponibles` | Listar autos disponibles |
-
-### Clientes
-
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| `POST` | `/api/clientes` | Registrar un cliente |
-| `GET` | `/api/clientes/{id}` | Consultar cliente por ID |
-
-### Alquileres
-
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| `POST` | `/api/alquileres` | Crear un alquiler |
-| `GET` | `/api/alquileres/{id}` | Consultar un alquiler |
-| `PUT` | `/api/alquileres/{id}/finalizar` | Finalizar un alquiler |
-
----
-
-## 🧪 Ejemplos de solicitudes y respuestas
-
-> Los cuerpos de respuesta son ilustrativos; ajústalos a los DTOs reales de tu implementación.
-
-### 1. Crear un auto
-
-**Solicitud** — `POST /api/autos`
+Cuerpo para `POST /api/autos`:
 
 ```json
 {
@@ -363,70 +106,43 @@ Las clases del dominio (`Auto`, `Cliente`, `Alquiler`) **no** tienen anotaciones
   "marca": "Toyota",
   "modelo": "Corolla",
   "anio": 2025,
+  "deposito": 300000,
   "precioPorDia": 150000
 }
 ```
 
-**Respuesta** — `201 Created`
+`deposito` y `precioPorDia` son campos diferentes. El campo `estado` no se necesita en la solicitud de registro: el servicio asigna `DISPONIBLE`.
 
-```json
-{
-  "id": 1,
-  "placa": "ABC123",
-  "marca": "Toyota",
-  "modelo": "Corolla",
-  "anio": 2025,
-  "precioPorDia": 150000,
-  "estado": "DISPONIBLE"
-}
-```
+### Clientes
 
-### 2. Consultar un auto
+| Método | Ruta | Descripción | Respuestas principales |
+|---|---|---|---|
+| `POST` | `/api/cliente` | Registrar cliente | `201`, `400`, `409` |
+| `GET` | `/api/cliente` | Listar clientes | `200` |
+| `GET` | `/api/cliente/{id}` | Consultar cliente por ID | `200`, `404` |
 
-**Solicitud** — `GET /api/autos/1`
-
-**Respuesta** — `200 OK`
-
-```json
-{
-  "id": 1,
-  "placa": "ABC123",
-  "marca": "Toyota",
-  "modelo": "Corolla",
-  "anio": 2025,
-  "precioPorDia": 150000,
-  "estado": "DISPONIBLE"
-}
-```
-
-### 3. Crear un cliente
-
-**Solicitud** — `POST /api/clientes`
+Cuerpo para `POST /api/cliente`:
 
 ```json
 {
   "nombre": "Carlos Pérez",
   "documento": "123456789",
-  "telefono": "3001234567",
-  "email": "carlos@email.com"
+  "email": "carlos@example.com",
+  "telefono": "3001234567"
 }
 ```
 
-**Respuesta** — `201 Created`
+### Alquileres
 
-```json
-{
-  "id": 1,
-  "nombre": "Carlos Pérez",
-  "documento": "123456789",
-  "telefono": "3001234567",
-  "email": "carlos@email.com"
-}
-```
+| Método | Ruta | Descripción | Respuestas principales |
+|---|---|---|---|
+| `POST` | `/api/alquiler` | Crear alquiler | `201`, `400`, `404`, `409` |
+| `GET` | `/api/alquiler/{id}` | Consultar alquiler por ID | `200`, `404` |
+| `GET` | `/api/alquiler/detallados` | Listar alquileres con información detallada | `200` |
+| `GET` | `/api/alquiler/{id}/detallado` | Consultar detalle de un alquiler | `200`, `404` |
+| `PUT` | `/api/alquiler/{id}/finalizar` | Finalizar alquiler | `200`, `404`, `409` |
 
-### 4. Crear un alquiler
-
-**Solicitud** — `POST /api/alquileres`
+Cuerpo para `POST /api/alquiler`:
 
 ```json
 {
@@ -436,140 +152,114 @@ Las clases del dominio (`Auto`, `Cliente`, `Alquiler`) **no** tienen anotaciones
 }
 ```
 
-**Respuesta** — `201 Created`
+No envíes `valorTotal`: se calcula en el backend a partir del precio diario guardado para el vehículo.
 
-```json
-{
-  "id": 1,
-  "clienteId": 1,
-  "autoId": 1,
-  "fechaInicio": "2026-10-08",
-  "fechaFin": "2026-10-13",
-  "cantidadDias": 5,
-  "valorTotal": 750000,
-  "estado": "ACTIVO"
-}
+### Ejemplo rápido con cURL
+
+```bash
+curl -X POST http://localhost:8080/api/alquiler \
+  -H "Content-Type: application/json" \
+  -d '{"clienteId":1,"autoId":1,"cantidadDias":5}'
 ```
 
-### 5. Finalizar un alquiler
+Puedes reproducir los ejemplos desde Postman usando `http://localhost:8080` como base URL y `Content-Type: application/json` para solicitudes con cuerpo JSON.
 
-**Solicitud** — `PUT /api/alquileres/1/finalizar`
+### Códigos HTTP
 
-**Respuesta** — `200 OK`
+| Código | Uso habitual |
+|---|---|
+| `200 OK` | Consulta o finalización completada |
+| `201 Created` | Vehículo, cliente o alquiler creado |
+| `400 Bad Request` | Datos faltantes o inválidos |
+| `404 Not Found` | Vehículo, cliente o alquiler no encontrado |
+| `409 Conflict` | Placa/documento/correo duplicado, vehículo no disponible o alquiler ya finalizado |
 
-```json
-{
-  "id": 1,
-  "clienteId": 1,
-  "autoId": 1,
-  "cantidadDias": 5,
-  "valorTotal": 750000,
-  "estado": "FINALIZADO"
-}
+**Nota sobre errores:** el contrato de error todavía no está totalmente unificado en todos los endpoints. Algunas operaciones devuelven `ApiErrorResponse` (`status`, `error`, `message`) y otras devuelven un objeto JSON con la propiedad `Mensaje`. Para clientes que consuman la API, revisa el endpoint concreto antes de asumir una única estructura de error.
+
+## Configuración y ejecución local
+
+### Requisitos
+
+- JDK 17.
+- PostgreSQL accesible desde el equipo.
+- Git (para clonar el proyecto).
+- No es obligatorio instalar Maven globalmente; el repositorio incluye `mvnw` y `mvnw.cmd`.
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/KevinOsorioDEV/autorent.git
+cd autorent
 ```
 
-### Ejemplos de errores
+### 2. Crear la base de datos
 
-**Auto no disponible** — `409 Conflict`
+En PostgreSQL, crea la base si todavía no existe:
 
-```json
-{
-  "status": 409,
-  "error": "Conflict",
-  "message": "El auto con id 1 no está disponible para alquiler"
-}
+```sql
+CREATE DATABASE autorent;
 ```
 
-**Auto o cliente no encontrado** — `404 Not Found`
+La configuración versionada tiene `spring.jpa.hibernate.ddl-auto=none`: **Hibernate no crea ni actualiza las tablas automáticamente**. Antes de llamar a los endpoints, aplica el esquema SQL requerido por las entidades y registra los estados que se referencian desde los vehículos y los alquileres (`estado_id`).
 
-```json
-{
-  "status": 404,
-  "error": "Not Found",
-  "message": "Auto no encontrado con id 99"
-}
+### 3. Configurar la conexión
+
+Se pueden usar variables de entorno para sobrescribir los valores del archivo `src/main/resources/application.properties`.
+
+**Windows PowerShell:**
+
+```powershell
+$env:SPRING_DATASOURCE_URL = "jdbc:postgresql://localhost:5432/autorent"
+$env:SPRING_DATASOURCE_USERNAME = "postgres"
+$env:SPRING_DATASOURCE_PASSWORD = "TU_CLAVE_LOCAL"
 ```
 
-**Datos inválidos** — `400 Bad Request`
+**Linux/macOS:**
 
-```json
-{
-  "status": 400,
-  "error": "Bad Request",
-  "message": "La cantidad de días debe ser mayor que cero"
-}
+```bash
+export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/autorent"
+export SPRING_DATASOURCE_USERNAME="postgres"
+export SPRING_DATASOURCE_PASSWORD="TU_CLAVE_LOCAL"
 ```
 
-**Finalizar un alquiler ya finalizado** — `409 Conflict`
+Sustituye usuario y contraseña por los de tu instalación. No uses credenciales reales dentro de archivos versionados en Git.
 
-```json
-{
-  "status": 409,
-  "error": "Conflict",
-  "message": "El alquiler 1 ya fue finalizado"
-}
+### 4. Compilar y ejecutar
+
+**Windows:**
+
+```powershell
+.\mvnw.cmd clean verify
+.\mvnw.cmd spring-boot:run
 ```
 
-### Resumen de códigos HTTP
+**Linux/macOS:**
 
-| Situación | Código |
-|-----------|--------|
-| Recurso creado | `201 Created` |
-| Consulta / finalización exitosa | `200 OK` |
-| Datos inválidos | `400 Bad Request` |
-| Auto / cliente / alquiler no encontrado | `404 Not Found` |
-| Auto no disponible / alquiler ya finalizado / documento duplicado | `409 Conflict` |
-
----
-
-## ✅ Pruebas realizadas
-
-| # | Prueba | Resultado esperado |
-|---|--------|--------------------|
-| 1 | Crear un auto | `201`, estado `DISPONIBLE` |
-| 2 | Consultar el auto | `200` |
-| 3 | Crear un cliente | `201` |
-| 4 | Crear un alquiler | `201`, `valorTotal` calculado |
-| 5 | Verificar que el auto pasó a `ALQUILADO` | `GET /api/autos/{id}` → `ALQUILADO` |
-| 6 | Alquilar nuevamente el mismo auto | `409 Conflict` |
-| 7 | Finalizar el alquiler | `200`, estado `FINALIZADO` |
-| 8 | Verificar que el auto regresó a `DISPONIBLE` | `GET /api/autos/{id}` → `DISPONIBLE` |
-| 9 | Finalizar nuevamente el alquiler | `409 Conflict` |
-
-📸 Las capturas de evidencia (endpoints, consulta de datos en PostgreSQL, caso exitoso y caso de error) se encuentran en la carpeta `/evidencias`.
-
----
-
-## ❓ Preguntas clave de la arquitectura
-
-**¿Podría cambiar la tecnología externa sin modificar las reglas de negocio?** Sí.
-
-- **PostgreSQL → otro motor (MySQL, Oracle, etc.):** solo cambia la dependencia del driver y la configuración de `application.properties`. Dominio, casos de uso y puertos permanecen intactos.
-- **REST → otro mecanismo de entrada** (gRPC, consola, mensajería): se crea un nuevo adaptador de entrada que use los mismos casos de uso.
-
-**¿Quién depende de quién?** Las dependencias apuntan siempre hacia el núcleo:
-
-```
-Adaptadores (infraestructura) ──► Puertos ──► Aplicación ──► Dominio
+```bash
+./mvnw clean verify
+./mvnw spring-boot:run
 ```
 
-El dominio no depende de nadie.
+Por defecto, la API se publica en `http://localhost:8080`.
 
----
+Para generar el JAR ejecutable:
 
-## 🔄 Extensibilidad (ejemplo: cancelar un alquiler)
+```bash
+./mvnw clean package
+```
 
-Si se necesitara cancelar un alquiler antes de su fecha de inicio, el cambio se haría así:
+En Windows usa `.\mvnw.cmd clean package` desde la carpeta del proyecto.
 
-1. **Regla de negocio nueva:** solo se puede cancelar un alquiler que aún no ha iniciado.
-2. **Dominio:** nuevo estado `CANCELADO` y método de cancelación en `Alquiler`.
-3. **Puerto de entrada:** `CancelarAlquilerUseCase`.
-4. **Aplicación:** implementación en `AlquilerService`.
-5. **Adaptador REST:** nuevo endpoint (por ejemplo, `PUT /api/alquileres/{id}/cancelar`).
-6. **Persistencia:** ajuste mínimo en la entidad y el mapeo para el nuevo estado.
+## Pruebas
 
----
+Ejecuta `./mvnw test` (Windows PowerShell: `./mvnw.cmd test`) para lanzar las pruebas automatizadas definidas en el proyecto. La compilación y las pruebas pueden requerir ajustes de configuración dependiendo de la base de datos que utilice cada prueba.
 
-## 📄 Licencia
+## Seguridad y configuración
 
-Proyecto con fines académicos.
+- No publiques credenciales reales de PostgreSQL en `application.properties`.
+- Si una contraseña versionada alguna vez fue una credencial real, cámbiala y evalúa retirarla también del historial de Git; editar el archivo actual no elimina versiones anteriores.
+- `ddl-auto=none` mantiene el esquema bajo control explícito: no lo cambies a `create` o `update` sin revisar primero el impacto en tus datos.
+
+## Estado del proyecto
+
+La documentación describe el código observado en la rama `master`. Los ejemplos de payload corresponden a los DTOs actuales; si cambian rutas, DTOs o reglas de negocio, actualiza también esta documentación y el diagrama.
