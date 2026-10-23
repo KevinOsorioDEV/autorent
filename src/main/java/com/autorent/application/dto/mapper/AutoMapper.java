@@ -15,8 +15,8 @@ public class AutoMapper {
                 auto.getMarca(),
                 auto.getModelo(),
                 auto.getAnio(),
-                auto.getPrecioPorDia(),
                 auto.getDeposito(),
+                auto.getPrecioPorDia(),
                 auto.getEstado().toString()
         );
     }

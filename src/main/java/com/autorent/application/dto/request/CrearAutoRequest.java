@@ -5,6 +5,6 @@ public record CrearAutoRequest(
         String marca,
         String modelo,
         int anio,
-        double precioPorDia,
-        double deposito
+        double deposito,
+        double precioPorDia
 ) { }

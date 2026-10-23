@@ -5,6 +5,7 @@ import com.autorent.application.port.input.RegistrarAutoUseCase;
 import com.autorent.application.port.output.AutoRepositoryPort;
 import com.autorent.domain.exception.AutoNoEncontradoException;
 import com.autorent.domain.exception.DatoInvalidoException;
+import com.autorent.domain.exception.DatoRequeridoException;
 import com.autorent.domain.exception.PlacaDuplicadaException;
 import com.autorent.domain.model.Auto;
 import com.autorent.domain.model.EstadoAuto;
@@ -24,26 +25,50 @@ import java.util.List;
 
     @Override
     public Auto registrar(Auto auto) {
-        validarDatos(auto);
-        String placaLimpia = auto.getPlaca().trim();
-        if (autoRepositoryPort.existsByPlaca(placaLimpia)) {
-            throw new PlacaDuplicadaException(placaLimpia);
+        if (auto == null) {
+            throw new DatoRequeridoException(
+                    "Los datos del auto son obligatorios"
+            );
         }
-        auto.setPlaca(placaLimpia);
+
+        if (auto.getPlaca() == null || auto.getPlaca().isBlank()) {
+            throw new DatoRequeridoException("La placa es obligatoria");
+        }
+
+        if (auto.getMarca() == null || auto.getMarca().isBlank()) {
+            throw new DatoRequeridoException("La marca es obligatoria");
+        }
+
+        if (auto.getModelo() == null || auto.getModelo().isBlank()) {
+            throw new DatoRequeridoException("El modelo es obligatorio");
+        }
+
+        if (auto.getDeposito() == null || auto.getDeposito()<=0) {
+            throw new DatoRequeridoException("El deposito debee ser mayo a cero");
+        }
+
+        if (auto.getPrecioPorDia() == null || auto.getPrecioPorDia() <= 0) {
+            throw new DatoInvalidoException(
+                    "El precio por día debe ser mayor que cero"
+            );
+        }
+
+        String placa = auto.getPlaca().trim();
+
+        if (autoRepositoryPort.existsByPlaca(placa)) {
+            throw new PlacaDuplicadaException(placa);
+        }
+
+        auto.setPlaca(placa);
         auto.setMarca(auto.getMarca().trim());
         auto.setModelo(auto.getModelo().trim());
+        auto.setDeposito(auto.getDeposito());
+        auto.setPrecioPorDia(auto.getPrecioPorDia());
         auto.setEstado(EstadoAuto.DISPONIBLE);
+
         return autoRepositoryPort.guardar(auto);
     }
 
-    private void validarDatos(Auto auto) {
-        Validaciones.requerido(auto.getPlaca(), "Placa");
-        Validaciones.requerido(auto.getMarca(), "Marca");
-        Validaciones.requerido(auto.getModelo(), "Modelo");
-        if (auto.getPrecioPorDia() == null || auto.getPrecioPorDia() <= 0) {
-            throw new DatoInvalidoException("El precio por día debe ser mayor que cero");
-        }
-    }
     @Override
     public List<Auto> listarAutos() {
         return autoRepositoryPort.listarAutos();

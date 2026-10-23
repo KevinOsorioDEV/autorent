@@ -2,10 +2,13 @@ package com.autorent.infrastructure.adapter.input.rest;
 
 import com.autorent.application.dto.mapper.AutoMapper;
 import com.autorent.application.dto.request.CrearAutoRequest;
+import com.autorent.application.dto.response.ApiErrorResponse;
 import com.autorent.application.dto.response.AutoResponse;
 import com.autorent.application.port.input.ConsultarAutosUseCase;
 import com.autorent.application.port.input.RegistrarAutoUseCase;
 import com.autorent.domain.exception.AutoNoEncontradoException;
+import com.autorent.domain.exception.DatoInvalidoException;
+import com.autorent.domain.exception.DatoRequeridoException;
 import com.autorent.domain.exception.PlacaDuplicadaException;
 import com.autorent.domain.model.Auto;
 import org.springframework.http.HttpStatus;
@@ -40,7 +43,14 @@ public class AutoController {
             AutoResponse response = autoMapper.toResponse(autoCreado);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (PlacaDuplicadaException ex) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("Mensaje", ex.getMessage()));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body
+                    (new ApiErrorResponse(409,
+                            "Conflict", ex.getMessage()));
+        }catch (DatoRequeridoException | DatoInvalidoException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ApiErrorResponse(400,
+                            "Bad Request", ex.getMessage()));
+
         }
 
     }

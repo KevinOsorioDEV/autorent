@@ -1,18 +1,15 @@
 package com.autorent.application.service;
 
-import com.autorent.application.dto.response.AlquilerDetalladoResponse;
-import com.autorent.application.port.input.ConsultarAlquilerDetalldoUseCase;
+import com.autorent.application.port.input.ConsultarAlquilerDetalladoUseCase;
 import com.autorent.application.port.input.ConsultarAlquileresUseCase;
 import com.autorent.application.port.input.CrearAlquilerUseCase;
+import com.autorent.application.port.input.FinalizarAlquilerUseCase;
 import com.autorent.application.port.output.AlquilerDetalladoRepositoryPort;
 import com.autorent.application.port.output.AlquilerRepositoryPort;
 import com.autorent.application.port.output.AutoRepositoryPort;
 import com.autorent.application.port.output.ClienteRepositoryPort;
 import com.autorent.domain.exception.*;
-import com.autorent.domain.model.Alquiler;
-import com.autorent.domain.model.Auto;
-import com.autorent.domain.model.EstadoAlquiler;
-import com.autorent.domain.model.EstadoAuto;
+import com.autorent.domain.model.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +17,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
-public class AlquilerService implements CrearAlquilerUseCase, ConsultarAlquileresUseCase, ConsultarAlquilerDetalldoUseCase {
+public class AlquilerService implements CrearAlquilerUseCase,
+        ConsultarAlquileresUseCase, ConsultarAlquilerDetalladoUseCase, FinalizarAlquilerUseCase {
     private final AlquilerRepositoryPort alquilerRepositoryPort;
     private final ClienteRepositoryPort clienteRepositoryPort;
     private final AutoRepositoryPort autoRepositoryPort;
@@ -64,14 +62,15 @@ public class AlquilerService implements CrearAlquilerUseCase, ConsultarAlquilere
     }
 
     @Override
-    public List<AlquilerDetalladoResponse> listarTodosAlquilerDetallados() {
+    public List<AlquilerDetallado> listarTodosAlquilerDetallados() {
         return alquilerDetalladoRepositoryPort.listarTodosAlquilerDetallados();
     }
 
 
     @Override
-    public AlquilerDetalladoResponse consultarAlquilerDetalladoPorId(Long id) {
-        return alquilerDetalladoRepositoryPort.consultarAlquilerDetalladoPorId(id).orElseThrow(() -> new AlquilerNoEncontradoException("Alquiler no encontrado: " + id.toString()));
+    public AlquilerDetallado consultarAlquilerDetalladoPorId(Long id) {
+        return alquilerDetalladoRepositoryPort.consultarAlquilerDetalladoPorId(id)
+                .orElseThrow(() -> new AlquilerNoEncontradoException("Alquiler no encontrado: " + id.toString()));
     }
 
     @Override
@@ -94,10 +93,8 @@ public class AlquilerService implements CrearAlquilerUseCase, ConsultarAlquilere
             throw new AlquilerFinalizadoException("Alquiler se encuentra finalizado: " + alquilerId.toString());
         }
 
-        alquiler.setEstado(EstadoAlquiler.FINALIZADO);
-
-
-        auto.setEstado(EstadoAuto.DISPONIBLE);
+        alquiler.finalizar();
+        auto.liberar();
         autoRepositoryPort.guardar(auto);
 
         return alquilerRepositoryPort.guardar(alquiler);

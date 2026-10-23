@@ -1,6 +1,7 @@
 package com.autorent.domain.model;
 
 
+import com.autorent.domain.exception.AutoNoDisponibleException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,5 +21,16 @@ public class Auto {
     private Double deposito;
     private Double precioPorDia;
     private EstadoAuto estado;
+
+    public void alquilar() {
+        if (estado != EstadoAuto.DISPONIBLE) {
+            throw new AutoNoDisponibleException("Auto no disponible");
+        }
+        estado = EstadoAuto.ALQUILADO;
+    }
+
+    public void liberar() {
+        estado = EstadoAuto.DISPONIBLE;
+    }
 
 }
