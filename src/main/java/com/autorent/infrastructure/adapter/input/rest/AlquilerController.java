@@ -1,6 +1,5 @@
 package com.autorent.infrastructure.adapter.input.rest;
 
-import com.autorent.application.dto.mapper.AlquilerDetalladoMapper;
 import com.autorent.application.dto.response.AlquilerDetalladoResponse;
 import com.autorent.application.dto.mapper.AlquilerMapper;
 import com.autorent.application.dto.request.CrearAlquilerRequest;
@@ -11,13 +10,10 @@ import com.autorent.application.port.input.ConsultarAlquileresUseCase;
 import com.autorent.application.port.input.CrearAlquilerUseCase;
 import com.autorent.domain.exception.*;
 import com.autorent.domain.model.Alquiler;
-import com.autorent.infrastructure.adapter.output.persistence.dto.AlquilerDetalladoDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("api/alquiler")
@@ -26,17 +22,16 @@ public class AlquilerController {
     private final ConsultarAlquileresUseCase consultarAlquileresUseCase;
     private final ConsultarAlquilerDetalldoUseCase consultarAlquilerDetalldoUseCase;
     private final AlquilerMapper alquilerMapper;
-    private final AlquilerDetalladoMapper alquilerDetalladoMapper;
+
 
     public AlquilerController(CrearAlquilerUseCase crearAlquilerUseCase,
-                              ConsultarAlquileresUseCase consultarAlquileresUseCase, ConsultarAlquilerDetalldoUseCase consultarAlquilerDetalldoUseCase,
-                              AlquilerMapper alquilerMapper,
-                              AlquilerDetalladoMapper alquilerDetalladoMapper) {
+                              ConsultarAlquileresUseCase consultarAlquileresUseCase,
+                              ConsultarAlquilerDetalldoUseCase consultarAlquilerDetalldoUseCase,
+                              AlquilerMapper alquilerMapper) {
         this.crearAlquilerUseCase = crearAlquilerUseCase;
         this.consultarAlquileresUseCase = consultarAlquileresUseCase;
         this.consultarAlquilerDetalldoUseCase = consultarAlquilerDetalldoUseCase;
         this.alquilerMapper = alquilerMapper;
-        this.alquilerDetalladoMapper = alquilerDetalladoMapper;
     }
 
     @PostMapping
@@ -104,5 +99,15 @@ public class AlquilerController {
         }
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obtenerAlquilerPorId(@PathVariable Long id) {
+        try {
+            Alquiler alquiler = consultarAlquileresUseCase.obtenerAlquilerPorId(id);
+            return ResponseEntity.ok(alquilerMapper.toResponse(alquiler));
+        } catch (AlquilerNoEncontradoException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiErrorResponse(404, "Not Found", e.getMessage()));
+        }
+    }
 
 }

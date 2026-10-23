@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface ConsultarClientesUseCase {
     List<Cliente> listarClientes();
+    Cliente obtenerClientePorId(Long id);
 }

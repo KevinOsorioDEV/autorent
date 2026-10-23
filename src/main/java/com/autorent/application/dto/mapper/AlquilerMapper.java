@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class AlquilerMapper {
     public AlquilerResponse toResponse(Alquiler alquiler) {
         return new AlquilerResponse(
-                alquiler.getAutoId(),
+                alquiler.getId(),
                 alquiler.getClienteId(),
                 alquiler.getAutoId(),
                 alquiler.getFechaInicio(),

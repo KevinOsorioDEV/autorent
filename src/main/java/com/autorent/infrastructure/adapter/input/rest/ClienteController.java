@@ -3,10 +3,12 @@ package com.autorent.infrastructure.adapter.input.rest;
 
 import com.autorent.application.dto.mapper.ClienteMapper;
 import com.autorent.application.dto.request.CrearClienteRequest;
+import com.autorent.application.dto.response.ApiErrorResponse;
 import com.autorent.application.dto.response.ClienteResponse;
 import com.autorent.application.port.input.ConsultarClientesUseCase;
 import com.autorent.application.port.input.RegistrarClienteUseCase;
 import com.autorent.domain.exception.ClienteDuplicadoException;
+import com.autorent.domain.exception.ClienteNoEncontradoException;
 import com.autorent.domain.exception.DatoRequeridoException;
 import com.autorent.domain.exception.EmailDuplicadoException;
 import com.autorent.domain.model.Cliente;
@@ -55,5 +57,15 @@ public class ClienteController {
                 .map(clienteMapper::toResponse)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(clienteResponses);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obtenerClientePorId(@PathVariable Long id) {
+        try {
+            Cliente cliente = consultarClientesUseCase.obtenerClientePorId(id);
+            return ResponseEntity.ok(clienteMapper.toResponse(cliente));
+        } catch (ClienteNoEncontradoException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiErrorResponse(404, "Not Found",e.getMessage()));        }
     }
 }

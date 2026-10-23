@@ -13,7 +13,6 @@ import com.autorent.domain.model.Alquiler;
 import com.autorent.domain.model.Auto;
 import com.autorent.domain.model.EstadoAlquiler;
 import com.autorent.domain.model.EstadoAuto;
-import com.autorent.infrastructure.adapter.output.persistence.dto.AlquilerDetalladoDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,13 +36,19 @@ public class AlquilerService implements CrearAlquilerUseCase, ConsultarAlquilere
     @Override
     @Transactional
     public Alquiler crear(Long clienteId, Long autoId, int cantidadDias) {
+        if (clienteId == null) {
+            throw new DatoRequeridoException("clienteId requerido");
+        }
+        if (autoId == null) {
+            throw new DatoRequeridoException("autoId requerido");
+        }
         if (cantidadDias <= 0) {
             throw new CantidadDiasInvalidaException(cantidadDias);
         }
 
-        clienteRepositoryPort.buscarPorId(clienteId).orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado: " + clienteId.toString()));
+        clienteRepositoryPort.buscarPorId(clienteId).orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado: " + clienteId));
 
-        Auto auto = autoRepositoryPort.buscarPorId(autoId).orElseThrow(() -> new AutoNoEncontradoException("auto no encontrado: " + autoId.toString()));
+        Auto auto = autoRepositoryPort.buscarPorId(autoId).orElseThrow(() -> new AutoNoEncontradoException("auto no encontrado: " + autoId));
 
         if (auto.getEstado() != EstadoAuto.DISPONIBLE) {
             throw new AutoNoDisponibleException("Auto no disponible");
@@ -99,4 +104,9 @@ public class AlquilerService implements CrearAlquilerUseCase, ConsultarAlquilere
 
     }
 
+    @Override
+    public Alquiler obtenerAlquilerPorId(Long id) {
+        return alquilerRepositoryPort.buscarPorId(id)
+                .orElseThrow(() -> new AlquilerNoEncontradoException("Alquiler no encontrado: " + id));
+    }
 }
