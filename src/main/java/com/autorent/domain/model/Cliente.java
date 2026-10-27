@@ -15,4 +15,12 @@ public class Cliente {
     private String documento;
     private String email;
     private String telefono;
+
+    public void actualizarDatos(Cliente datos) {
+        nombre = datos.getNombre();
+        documento = datos.getDocumento();
+        email = datos.getEmail();
+        telefono = datos.getTelefono();
+    }
+
 }

@@ -2,6 +2,8 @@ package com.autorent.application.dto.mapper;
 
 import com.autorent.application.dto.request.CrearAutoRequest;
 import com.autorent.application.dto.response.AutoResponse;
+import com.autorent.domain.exception.DatoInvalidoException;
+import com.autorent.domain.exception.DatoRequeridoException;
 import com.autorent.domain.model.Auto;
 import com.autorent.domain.model.EstadoAuto;
 import org.springframework.stereotype.Component;
@@ -32,5 +34,14 @@ public class AutoMapper {
                 .estado(EstadoAuto.DISPONIBLE)
                 .build();
     }
-
+    public EstadoAuto toEstado(String estado) {
+        if (estado == null || estado.isBlank()) {
+            throw new DatoRequeridoException("El estado es obligatorio");
+        }
+        try {
+            return EstadoAuto.valueOf(estado.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new DatoInvalidoException("Estado no válido: " + estado + ". Usa DISPONIBLE o MANTENIMIENTO");
+        }
+    }
 }

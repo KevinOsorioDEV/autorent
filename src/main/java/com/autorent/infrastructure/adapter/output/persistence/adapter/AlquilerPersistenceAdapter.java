@@ -78,5 +78,9 @@ public class AlquilerPersistenceAdapter implements AlquilerRepositoryPort {
                 .build();
     }
 
-
+    @Override
+    public boolean existeAlquilerActivoPorCliente(Long clienteId) {
+        return alquilerJpaRepository.existsByCliente_IdAndEstado_Descripcion(
+                clienteId, EstadoAlquiler.ACTIVO.name());
+    }
 }

@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
-public class AlquilerService implements CrearAlquilerUseCase,
+    public class AlquilerService implements CrearAlquilerUseCase,
         ConsultarAlquileresUseCase, ConsultarAlquilerDetalladoUseCase, FinalizarAlquilerUseCase {
     private final AlquilerRepositoryPort alquilerRepositoryPort;
     private final ClienteRepositoryPort clienteRepositoryPort;
@@ -98,7 +98,6 @@ public class AlquilerService implements CrearAlquilerUseCase,
         autoRepositoryPort.guardar(auto);
 
         return alquilerRepositoryPort.guardar(alquiler);
-
     }
 
     @Override

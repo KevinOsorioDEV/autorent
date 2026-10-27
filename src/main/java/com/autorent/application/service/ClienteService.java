@@ -1,12 +1,11 @@
 package com.autorent.application.service;
 
 import com.autorent.application.port.input.ConsultarClientesUseCase;
+import com.autorent.application.port.input.EditarClienteUseCase;
 import com.autorent.application.port.input.RegistrarClienteUseCase;
+import com.autorent.application.port.output.AlquilerRepositoryPort;
 import com.autorent.application.port.output.ClienteRepositoryPort;
-import com.autorent.domain.exception.ClienteDuplicadoException;
-import com.autorent.domain.exception.ClienteNoEncontradoException;
-import com.autorent.domain.exception.DatoInvalidoException;
-import com.autorent.domain.exception.EmailDuplicadoException;
+import com.autorent.domain.exception.*;
 import com.autorent.domain.model.Cliente;
 import org.springframework.stereotype.Service;
 
@@ -14,14 +13,16 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 @Service
-public class ClienteService implements RegistrarClienteUseCase, ConsultarClientesUseCase {
+public class ClienteService implements RegistrarClienteUseCase, ConsultarClientesUseCase, EditarClienteUseCase {
 
     private static final Pattern EMAIL_VALIDO = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
 
     private final ClienteRepositoryPort clienteRepositoryPort;
+    private final AlquilerRepositoryPort alquilerRepositoryPort;
 
-    public ClienteService(ClienteRepositoryPort clienteRepositoryPort) {
+    public ClienteService(ClienteRepositoryPort clienteRepositoryPort, AlquilerRepositoryPort alquilerRepositoryPort) {
         this.clienteRepositoryPort = clienteRepositoryPort;
+        this.alquilerRepositoryPort = alquilerRepositoryPort;
     }
 
     @Override
@@ -65,5 +66,32 @@ public class ClienteService implements RegistrarClienteUseCase, ConsultarCliente
     public Cliente obtenerClientePorId(Long id) {
         return clienteRepositoryPort.buscarPorId(id)
                 .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado: " + id));
+    }
+
+    @Override
+    public Cliente editarCliente(Long id, Cliente datos) {
+        Cliente cliente = clienteRepositoryPort.buscarPorId(id)
+                .orElseThrow(() -> new ClienteNoEncontradoException("Cliente no encontrado: " + id));
+
+        if (alquilerRepositoryPort.existeAlquilerActivoPorCliente(id)) {
+            throw new EdicionNoPermitidaException(
+                    "El cliente tiene un alquiler activo. Se puede editar cuando lo finalice");
+        }
+
+        validarDatosRequeridos(datos);
+        limpiarDatos(datos);
+        validarEmail(datos.getEmail());
+
+        if (!datos.getDocumento().equals(cliente.getDocumento())
+                && clienteRepositoryPort.existsBydocumento(datos.getDocumento())) {
+            throw new ClienteDuplicadoException(datos.getDocumento());
+        }
+        if (!datos.getEmail().equals(cliente.getEmail())
+                && clienteRepositoryPort.existsByemail(datos.getEmail())) {
+            throw new EmailDuplicadoException(datos.getEmail());
+        }
+
+        cliente.actualizarDatos(datos);
+        return clienteRepositoryPort.registrar(cliente);
     }
 }

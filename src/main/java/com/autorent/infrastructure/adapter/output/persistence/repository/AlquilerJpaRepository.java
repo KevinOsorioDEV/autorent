@@ -4,4 +4,5 @@ import com.autorent.infrastructure.adapter.output.persistence.entity.AlquilerEnt
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AlquilerJpaRepository extends JpaRepository<AlquilerEntity, Long> {
+    boolean existsByCliente_IdAndEstado_Descripcion(Long clienteId, String descripcion);
 }

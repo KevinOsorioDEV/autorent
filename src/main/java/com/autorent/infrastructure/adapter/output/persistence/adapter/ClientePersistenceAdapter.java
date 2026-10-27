@@ -2,6 +2,7 @@ package com.autorent.infrastructure.adapter.output.persistence.adapter;
 
 import com.autorent.application.port.output.ClienteRepositoryPort;
 import com.autorent.domain.model.Cliente;
+import com.autorent.domain.model.EstadoAlquiler;
 import com.autorent.infrastructure.adapter.output.persistence.entity.ClienteEntity;
 import com.autorent.infrastructure.adapter.output.persistence.repository.ClienteJpaRepository;
 import org.springframework.stereotype.Component;
@@ -61,4 +62,6 @@ public class ClientePersistenceAdapter implements ClienteRepositoryPort {
                 .email(entity.getEmail())
                 .build();
     }
+
+
 }

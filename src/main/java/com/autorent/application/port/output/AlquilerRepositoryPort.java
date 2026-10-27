@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface AlquilerRepositoryPort {
     Alquiler guardar(Alquiler alquiler);
     Optional<Alquiler> buscarPorId(Long id);
+    boolean existeAlquilerActivoPorCliente(Long clienteId);
 }

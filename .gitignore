@@ -32,3 +32,4 @@ build/
 ### VS Code ###
 .vscode/
 /tmp/appmap/request_recording/
+/tmp/appmap/request_recording/
