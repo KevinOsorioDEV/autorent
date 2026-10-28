@@ -1,0 +1,1340 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoRent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --asfalto: #1F2A33;
+  --asfalto-2: #4A5763;
+  --asfalto-3: #7B8791;
+  --concreto: #ECEFEA;
+  --superficie: #FFFFFF;
+  --linea: #D6DBD4;
+  --placa: #F6C915;
+  --placa-sombra: #D9AE00;
+  --verde: #1E7F4F;
+  --verde-suave: #E1F1E8;
+  --azul: #2F5DA8;
+  --azul-suave: #E3EBF8;
+  --naranja: #B35A08;
+  --naranja-suave: #F8EADA;
+  --rojo: #B3261E;
+  --rojo-suave: #FBE6E4;
+  --gris-suave: #E7EAE6;
+  --radio: 14px;
+  --radio-sm: 8px;
+  --sombra: 0 1px 2px rgba(31,42,51,.06), 0 8px 24px -12px rgba(31,42,51,.18);
+  --cond: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --sans: "Barlow", system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--asfalto);
+  background: var(--concreto);
+  font-variant-numeric: tabular-nums;
+}
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; border-radius: 6px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Placa colombiana (elemento principal) ---------- */
+.placa {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 11.5rem;
+  padding: .45rem .9rem .3rem;
+  background: var(--placa);
+  border: 3px solid var(--asfalto);
+  border-radius: 11px;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.45), 0 3px 0 var(--placa-sombra);
+  color: var(--asfalto);
+  transition: background-color .5s ease, transform .5s cubic-bezier(.2,.9,.3,1.3), box-shadow .5s;
+}
+.placa::before, .placa::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(31,42,51,.35);
+}
+.placa::before { left: 10px; }
+.placa::after { right: 10px; }
+.placa b {
+  font-family: var(--cond);
+  font-weight: 700;
+  font-size: 2.35rem;
+  line-height: 1;
+  letter-spacing: .05em;
+  white-space: nowrap;
+}
+.placa small {
+  font-family: var(--cond);
+  font-weight: 600;
+  font-size: .78rem;
+  letter-spacing: .06em;
+  line-height: 1.3;
+  max-width: 13rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.placa.mini { min-width: 0; padding: .1rem .5rem; border-width: 2px; border-radius: 6px; box-shadow: 0 2px 0 var(--placa-sombra); }
+.placa.mini::before, .placa.mini::after { display: none; }
+.placa.mini b { font-size: 1.15rem; }
+.placa.logo { min-width: 0; padding: .05rem .55rem; border-width: 2px; border-radius: 6px; box-shadow: 0 2px 0 var(--placa-sombra); }
+.placa.logo::before, .placa.logo::after { display: none; }
+.placa.logo b { font-size: 1.25rem; letter-spacing: .08em; }
+.placa.vacia b { opacity: .35; }
+.placa.golpe { animation: golpe .6s cubic-bezier(.2,.9,.3,1.3); }
+@keyframes golpe { 0% { transform: scale(1); } 35% { transform: scale(1.08) rotate(-1.5deg); } 100% { transform: scale(1); } }
+
+/* ---------- Encabezado y navegación ---------- */
+.barra {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--asfalto);
+  color: #fff;
+}
+.barra-in {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; gap: 1.5rem;
+  padding: .7rem 1.25rem;
+}
+.marca { display: flex; align-items: center; gap: .7rem; text-decoration: none; color: inherit; }
+.marca span { font-family: var(--cond); font-weight: 600; font-size: 1.05rem; color: #C9D1D7; }
+.nav { display: flex; gap: .25rem; }
+.nav button {
+  position: relative;
+  border: 0; background: none; color: #C9D1D7;
+  padding: .5rem .85rem; border-radius: 999px;
+  font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: .45rem;
+  transition: color .2s, background-color .2s;
+}
+.nav button:hover { color: #fff; background: rgba(255,255,255,.08); }
+.nav button[aria-current="page"] { color: var(--asfalto); background: var(--placa); }
+.nav svg { width: 18px; height: 18px; flex: none; }
+.barra-der { margin-left: auto; display: flex; align-items: center; gap: .6rem; }
+.estado-api {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font-size: .85rem; color: #C9D1D7; white-space: nowrap;
+}
+.estado-api i { width: 9px; height: 9px; border-radius: 50%; background: var(--asfalto-3); }
+.estado-api.ok i { background: #4CC38A; box-shadow: 0 0 0 4px rgba(76,195,138,.18); }
+.estado-api.error i { background: #F07167; box-shadow: 0 0 0 4px rgba(240,113,103,.2); }
+.btn-peticiones {
+  border: 1px solid rgba(255,255,255,.22); background: none; color: #fff;
+  border-radius: 999px; padding: .35rem .8rem; font-size: .85rem; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: .4rem;
+}
+.btn-peticiones:hover { background: rgba(255,255,255,.08); }
+.btn-peticiones em { font-style: normal; background: var(--placa); color: var(--asfalto); border-radius: 999px; padding: 0 .45rem; font-size: .75rem; min-width: 1.4rem; text-align: center; }
+
+.aviso-conexion {
+  display: none;
+  background: var(--rojo-suave); color: var(--rojo);
+  border-bottom: 1px solid #F1C5C1;
+}
+.aviso-conexion.visible { display: block; }
+.aviso-conexion div { max-width: 1200px; margin: 0 auto; padding: .7rem 1.25rem; font-weight: 500; }
+.aviso-conexion code { background: rgba(179,38,30,.08); padding: 0 .3rem; border-radius: 4px; }
+
+/* ---------- Estructura de vistas ---------- */
+main { max-width: 1200px; margin: 0 auto; padding: 1.75rem 1.25rem 6rem; }
+.vista[hidden] { display: none; }
+.vista.entrando { animation: entrar .35s ease both; }
+@keyframes entrar { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.vista-cab {
+  display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between;
+  gap: 1rem; margin-bottom: 1.25rem;
+}
+h1 {
+  font-family: var(--cond); font-weight: 700;
+  font-size: clamp(2rem, 4vw, 2.75rem); line-height: 1.05;
+  margin: 0;
+}
+.vista-cab p { margin: .3rem 0 0; color: var(--asfalto-2); max-width: 60ch; }
+h2 { font-family: var(--cond); font-weight: 700; font-size: 1.4rem; line-height: 1.15; margin: 0 0 1rem; }
+.dos-col { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.panel {
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  padding: 1.25rem;
+}
+.panel.fijo { position: sticky; top: 5rem; }
+
+/* ---------- Formularios ---------- */
+.campo { display: grid; gap: .3rem; margin-bottom: .85rem; }
+.campo label { font-size: .88rem; font-weight: 600; color: var(--asfalto-2); }
+.campo input, .campo select, .buscar input {
+  width: 100%;
+  border: 1.5px solid var(--linea); border-radius: var(--radio-sm);
+  background: #FAFBF9;
+  padding: .6rem .75rem;
+  transition: border-color .15s, box-shadow .15s, background-color .15s;
+}
+.campo input:hover, .campo select:hover { border-color: #BCC3BA; }
+.campo input:focus, .campo select:focus, .buscar input:focus {
+  outline: none; border-color: var(--azul); background: #fff;
+  box-shadow: 0 0 0 3px rgba(47,93,168,.18);
+}
+.campo input[aria-invalid="true"] { border-color: var(--rojo); background: var(--rojo-suave); }
+.campo .ayuda { font-size: .8rem; color: var(--asfalto-3); }
+.campo .err { font-size: .82rem; color: var(--rojo); font-weight: 500; }
+.fila-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+.input-placa { text-transform: uppercase; font-family: var(--cond); font-weight: 700; font-size: 1.15rem !important; letter-spacing: .08em; }
+.vista-previa { display: flex; justify-content: center; padding: .4rem 0 1.1rem; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  border: 0; border-radius: var(--radio-sm);
+  padding: .7rem 1.1rem;
+  font-weight: 700; cursor: pointer;
+  background: var(--asfalto); color: #fff;
+  transition: transform .12s, background-color .15s, opacity .15s;
+}
+.btn:hover { background: #2B3A46; }
+.btn:active { transform: translateY(1px) scale(.99); }
+.btn[disabled] { opacity: .55; cursor: progress; }
+.btn.ancho { width: 100%; }
+.btn.amarillo { background: var(--placa); color: var(--asfalto); box-shadow: 0 2px 0 var(--placa-sombra); }
+.btn.amarillo:hover { background: #FFD633; }
+.btn.claro { background: var(--superficie); color: var(--asfalto); border: 1.5px solid var(--linea); }
+.btn.claro:hover { border-color: var(--asfalto-3); background: #fff; }
+.btn.chico { padding: .4rem .75rem; font-size: .88rem; }
+.btn .giro { width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: girar .7s linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
+
+.buscar { display: flex; gap: .5rem; align-items: center; }
+.buscar input { width: 8.5rem; padding: .5rem .7rem; }
+.buscar-res { margin-top: .75rem; }
+
+.segmento { display: inline-flex; background: var(--gris-suave); border-radius: 999px; padding: 3px; }
+.segmento button {
+  border: 0; background: none; padding: .4rem .95rem; border-radius: 999px;
+  font-weight: 600; color: var(--asfalto-2); cursor: pointer; transition: background-color .2s, color .2s;
+}
+.segmento button[aria-pressed="true"] { background: var(--superficie); color: var(--asfalto); box-shadow: 0 1px 3px rgba(31,42,51,.15); }
+
+/* ---------- Estados ---------- */
+.chip {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .15rem .6rem; border-radius: 999px;
+  font-size: .8rem; font-weight: 700; letter-spacing: .02em;
+  transition: background-color .4s, color .4s;
+  white-space: nowrap;
+}
+.chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.chip.DISPONIBLE { background: var(--verde-suave); color: var(--verde); }
+.chip.ALQUILADO, .chip.ACTIVO { background: var(--azul-suave); color: var(--azul); }
+.chip.MANTENIMIENTO { background: var(--naranja-suave); color: var(--naranja); }
+.chip.FINALIZADO { background: var(--gris-suave); color: var(--asfalto-2); }
+
+/* ---------- Flota ---------- */
+.flota { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+.auto {
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  padding: 1.1rem 1rem 1rem;
+  display: grid; gap: .8rem;
+  transition: border-color .2s, box-shadow .2s;
+}
+.auto.nuevo { animation: aparecer .6s cubic-bezier(.2,.9,.3,1.2) both; }
+@keyframes aparecer { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
+.auto .placa { justify-self: center; }
+.auto-datos { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.auto-precio { font-size: .9rem; color: var(--asfalto-2); white-space: nowrap; }
+.auto-datos { flex-wrap: wrap; }
+.auto-precio strong { color: var(--asfalto); font-size: 1.05rem; }
+.auto-pie { display: flex; justify-content: space-between; align-items: center; gap: .5rem; border-top: 1px dashed var(--linea); padding-top: .75rem; font-size: .85rem; color: var(--asfalto-3); }
+
+.auto { position: relative; }
+.editar-auto {
+  position: absolute; top: .55rem; right: .55rem;
+  width: 2rem; height: 2rem; border-radius: 50%;
+  border: 0; background: var(--gris-suave); color: var(--asfalto-2);
+  display: grid; place-items: center; cursor: pointer;
+  transition: background-color .15s, color .15s;
+}
+.editar-auto:hover { background: var(--asfalto); color: #fff; }
+.editar-auto svg { width: 15px; height: 15px; }
+.panel { scroll-margin-top: 5.5rem; }
+.panel.editando { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(47,93,168,.15); }
+.acciones-form { display: grid; gap: .5rem; }
+.auto-acciones { display: flex; gap: .5rem; }
+.auto-acciones .btn { flex: 1; }
+.auto-nota { font-size: .84rem; color: var(--asfalto-3); text-align: center; padding: .45rem 0 .1rem; }
+.auto.MANTENIMIENTO .placa { background: #E4DCC0; box-shadow: inset 0 0 0 2px rgba(255,255,255,.45), 0 3px 0 #C9BE98; }
+.auto.MANTENIMIENTO .placa b { opacity: .7; }
+.auto.cambio .placa { animation: golpe .6s cubic-bezier(.2,.9,.3,1.3); }
+.btn.mantenimiento { background: var(--naranja-suave); color: var(--naranja); }
+.btn.mantenimiento:hover { background: #F3DCC2; }
+.btn.verde { background: var(--verde); }
+.btn.verde:hover { background: #186A41; }
+.vacio {
+  border: 2px dashed var(--linea); border-radius: var(--radio);
+  padding: 2.5rem 1.25rem; text-align: center; color: var(--asfalto-2);
+  grid-column: 1 / -1;
+}
+.vacio strong { display: block; font-family: var(--cond); font-size: 1.35rem; color: var(--asfalto); margin-bottom: .25rem; }
+
+/* ---------- Tablas ---------- */
+.tabla-wrap { overflow-x: auto; border: 1px solid var(--linea); border-radius: var(--radio); background: var(--superficie); }
+table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+th { text-align: left; font-size: .82rem; font-weight: 600; color: var(--asfalto-2); padding: .75rem 1rem; border-bottom: 1px solid var(--linea); background: #F7F8F6; white-space: nowrap; }
+td { padding: .75rem 1rem; border-bottom: 1px solid #EDF0EC; vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+tbody tr { transition: background-color .25s; }
+tbody tr:hover { background: #FAFBF9; }
+tr.resaltar { animation: resaltar 1.6s ease; }
+@keyframes resaltar { 0%, 30% { background: #FFF6CC; } 100% { background: transparent; } }
+.num { text-align: right; white-space: nowrap; }
+.sub { display: block; color: var(--asfalto-3); font-size: .82rem; }
+
+/* ---------- Alquiler: estimado ---------- */
+.dias { display: flex; align-items: stretch; border: 1.5px solid var(--linea); border-radius: var(--radio-sm); overflow: hidden; background: #FAFBF9; }
+.dias button { border: 0; background: none; width: 2.8rem; font-size: 1.3rem; font-weight: 600; cursor: pointer; color: var(--asfalto-2); }
+.dias button:hover { background: var(--gris-suave); color: var(--asfalto); }
+.dias input::-webkit-outer-spin-button, .dias input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.dias input { -moz-appearance: textfield; appearance: textfield; border: 0 !important; border-radius: 0 !important; text-align: center; font-weight: 700; box-shadow: none !important; background: transparent !important; }
+.estimado {
+  margin: .25rem 0 1rem; padding: .9rem 1rem;
+  border-radius: var(--radio-sm); background: var(--concreto);
+}
+.estimado .op { font-size: .9rem; color: var(--asfalto-2); }
+.estimado .total { font-family: var(--cond); font-weight: 700; font-size: 1.9rem; line-height: 1.1; }
+.estimado .nota { font-size: .8rem; color: var(--asfalto-3); }
+.resultado {
+  margin-top: 1rem; padding: 1rem; border-radius: var(--radio-sm);
+  background: var(--verde-suave); color: #144F33;
+  animation: aparecer .5s ease both;
+}
+.resultado strong { font-family: var(--cond); font-size: 1.5rem; display: block; }
+
+/* ---------- Ficha de búsqueda ---------- */
+.ficha { background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--radio); padding: 1rem 1.1rem; animation: aparecer .4s ease both; }
+.ficha dl { display: grid; grid-template-columns: auto 1fr; gap: .3rem 1rem; margin: 0; }
+.ficha dt { color: var(--asfalto-3); font-size: .88rem; }
+.ficha dd { margin: 0; font-weight: 600; }
+.ficha.error { background: var(--rojo-suave); border-color: #F1C5C1; color: var(--rojo); font-weight: 500; }
+
+/* ---------- Demo guiada ---------- */
+.demo { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1.5rem; align-items: start; }
+.pasos { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; counter-reset: paso; }
+.paso {
+  background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--radio);
+  transition: border-color .3s, background-color .3s, box-shadow .3s;
+}
+.paso-cab { display: grid; grid-template-columns: 2.4rem minmax(0,1fr) auto; gap: .9rem; align-items: center; padding: .8rem 1rem; }
+.paso-num {
+  width: 2.4rem; height: 2.4rem; border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--cond); font-weight: 700; font-size: 1.15rem;
+  background: var(--gris-suave); color: var(--asfalto-2);
+  transition: background-color .3s, color .3s, transform .3s;
+}
+.paso-titulo { font-weight: 600; line-height: 1.3; }
+.paso-ruta { display: block; font-size: .84rem; color: var(--asfalto-3); margin-top: .1rem; overflow-wrap: anywhere; }
+.paso-ruta b { color: var(--asfalto-2); font-weight: 700; }
+.paso-res { display: flex; align-items: center; gap: .5rem; white-space: nowrap; }
+.codigo { font-family: var(--cond); font-weight: 700; font-size: 1.05rem; padding: .1rem .55rem; border-radius: 6px; background: var(--gris-suave); color: var(--asfalto-2); }
+.codigo.c2 { background: var(--verde-suave); color: var(--verde); }
+.codigo.c4 { background: var(--naranja-suave); color: var(--naranja); }
+.codigo.c5, .codigo.c0 { background: var(--rojo-suave); color: var(--rojo); }
+.esperado { font-size: .8rem; color: var(--asfalto-3); }
+.paso.corriendo { border-color: var(--azul); box-shadow: 0 0 0 3px rgba(47,93,168,.15); }
+.paso.corriendo .paso-num { background: var(--azul); color: #fff; transform: scale(1.06); }
+.paso.paso-ok .paso-num { background: var(--verde); color: #fff; }
+.paso.paso-falla { border-color: #E9A9A3; background: #FFF9F8; }
+.paso.paso-falla .paso-num { background: var(--rojo); color: #fff; }
+.paso-det { padding: 0 1rem .9rem 4.3rem; font-size: .9rem; color: var(--asfalto-2); }
+.paso-det p { margin: 0 0 .4rem; }
+.paso-det details summary { cursor: pointer; font-weight: 600; color: var(--azul); font-size: .85rem; }
+pre.json {
+  margin: .5rem 0 0; padding: .75rem .9rem;
+  background: #18222A; color: #DCE6EC;
+  border-radius: var(--radio-sm);
+  font-size: .8rem; line-height: 1.5; overflow-x: auto; max-height: 280px;
+}
+.tablero { position: sticky; top: 5rem; display: grid; gap: 1rem; }
+.tablero .panel { display: grid; gap: .9rem; justify-items: center; text-align: center; }
+.tablero .placa b { font-size: 2.6rem; }
+.marcador { font-family: var(--cond); font-weight: 700; font-size: 3rem; line-height: 1; }
+.marcador small { font-size: 1.2rem; color: var(--asfalto-3); }
+.progreso { width: 100%; height: 8px; background: var(--gris-suave); border-radius: 999px; overflow: hidden; }
+.progreso i { display: block; height: 100%; width: 0; background: var(--verde); border-radius: 999px; transition: width .45s ease; }
+.tablero .texto { font-size: .9rem; color: var(--asfalto-2); margin: 0; }
+
+/* ---------- Toasts ---------- */
+.toasts { position: fixed; right: 1rem; bottom: 1rem; z-index: 60; display: grid; gap: .5rem; width: min(380px, calc(100vw - 2rem)); }
+.toast {
+  display: grid; grid-template-columns: auto 1fr; gap: .75rem; align-items: start;
+  background: var(--asfalto); color: #fff;
+  padding: .8rem 1rem; border-radius: 12px;
+  box-shadow: 0 12px 30px -10px rgba(0,0,0,.45);
+  animation: toastIn .35s cubic-bezier(.2,.9,.3,1.2) both;
+}
+.toast.saliendo { animation: toastOut .3s ease forwards; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes toastOut { to { opacity: 0; transform: translateX(20px); } }
+.toast .codigo { margin-top: .1rem; }
+.toast p { margin: 0; font-size: .92rem; }
+.toast p strong { display: block; font-size: .98rem; }
+.toast.error { background: #3A1715; }
+
+/* ---------- Panel de peticiones ---------- */
+.velo { position: fixed; inset: 0; background: rgba(31,42,51,.35); z-index: 70; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.velo.abierto { opacity: 1; pointer-events: auto; }
+.cajon {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 80;
+  width: min(460px, 100vw);
+  background: var(--superficie);
+  transform: translateX(100%); transition: transform .3s cubic-bezier(.2,.8,.2,1);
+  display: flex; flex-direction: column;
+  box-shadow: -20px 0 40px -20px rgba(0,0,0,.3);
+}
+.cajon.abierto { transform: none; }
+.cajon-cab { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.1rem; border-bottom: 1px solid var(--linea); }
+.cajon-cab h2 { margin: 0; }
+.cajon-cuerpo { overflow-y: auto; padding: .75rem 1.1rem 2rem; }
+.peticion { border-bottom: 1px solid #EDF0EC; padding: .6rem 0; }
+.peticion summary { display: grid; grid-template-columns: 3.6rem minmax(0,1fr) auto; gap: .6rem; align-items: center; cursor: pointer; list-style: none; }
+.peticion summary::-webkit-details-marker { display: none; }
+.metodo { font-family: var(--cond); font-weight: 700; font-size: .95rem; }
+.metodo.GET { color: var(--verde); } .metodo.POST { color: var(--azul); } .metodo.PUT { color: var(--naranja); }
+.peticion .ruta { font-size: .88rem; overflow-wrap: anywhere; }
+.peticion .ms { font-size: .78rem; color: var(--asfalto-3); }
+.cerrar { border: 0; background: var(--gris-suave); width: 2.2rem; height: 2.2rem; border-radius: 50%; cursor: pointer; font-size: 1.2rem; line-height: 1; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 960px) {
+  .dos-col, .demo { grid-template-columns: 1fr; }
+  .panel.fijo, .tablero { position: static; }
+  .tablero { order: -1; }
+}
+@media (max-width: 720px) {
+  .barra-in { gap: .75rem; padding: .6rem 1rem; }
+  .marca span, .estado-api span { display: none; }
+  .nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    background: var(--asfalto);
+    justify-content: space-around;
+    padding: .4rem .4rem calc(.4rem + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(255,255,255,.1);
+  }
+  .nav button { flex-direction: column; gap: .15rem; font-size: .72rem; padding: .4rem .5rem; border-radius: 10px; flex: 1; }
+  .nav svg { width: 20px; height: 20px; }
+  main { padding: 1.25rem 1rem 7rem; }
+  .toasts { bottom: 5.2rem; right: .5rem; width: calc(100vw - 1rem); }
+  .vista-cab { align-items: stretch; flex-direction: column; }
+  .buscar input { flex: 1; width: auto; }
+  .paso-cab { grid-template-columns: 2.1rem minmax(0,1fr); }
+  .paso-num { width: 2.1rem; height: 2.1rem; }
+  .paso-res { grid-column: 2; }
+  .paso-det { padding-left: 1rem; }
+  .ocultar-movil { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="barra-in">
+    <a class="marca" href="#flota" aria-label="AutoRent, ir a la flota">
+      <div class="placa logo" aria-hidden="true"><b>AUTORENT</b></div>
+      <span>Alquiler de autos</span>
+    </a>
+    <nav class="nav" aria-label="Secciones">
+      <button data-ir="flota">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17h14M6 17v2M18 17v2M4 13l2-5.5A2 2 0 0 1 7.9 6h8.2a2 2 0 0 1 1.9 1.5L20 13v4H4z"/><circle cx="7.5" cy="13.5" r=".6"/><circle cx="16.5" cy="13.5" r=".6"/></svg>
+        Flota
+      </button>
+      <button data-ir="clientes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 20a6.5 6.5 0 0 0-3-5.5"/></svg>
+        Clientes
+      </button>
+      <button data-ir="alquileres">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M15 8l2 2"/></svg>
+        Alquileres
+      </button>
+      <button data-ir="demo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>
+        Demo guiada
+      </button>
+    </nav>
+    <div class="barra-der">
+      <span class="estado-api" id="estadoApi" role="status"><i></i><span>Conectando…</span></span>
+      <button class="btn-peticiones" id="abrirPeticiones" aria-controls="cajon">
+        Peticiones <em id="contPeticiones">0</em>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="aviso-conexion" id="avisoConexion" role="alert">
+  <div>No hay conexión con el backend. Arranca el proyecto con <code>mvnw spring-boot:run</code> y abre <code>http://localhost:8080</code>.</div>
+</div>
+
+<main>
+
+  <!-- ===================== FLOTA ===================== -->
+  <section class="vista" id="vista-flota" aria-labelledby="t-flota">
+    <div class="vista-cab">
+      <div>
+        <h1 id="t-flota">Flota</h1>
+        <p>Los autos nuevos entran disponibles. Un auto disponible puede pasar a mantenimiento y volver. Un auto alquilado no se puede editar ni cambiar de estado hasta que finalice su alquiler.</p>
+      </div>
+      <form class="buscar" id="buscarAuto" role="search">
+        <label class="sr-only" for="buscarAutoId">Buscar auto por id</label>
+        <input id="buscarAutoId" type="number" min="1" placeholder="Id del auto" required>
+        <button class="btn claro chico" type="submit">Buscar</button>
+      </form>
+    </div>
+    <div id="resAuto" class="buscar-res"></div>
+
+    <div class="dos-col">
+      <form class="panel fijo" id="formAuto" novalidate>
+        <h2 id="tituloFormAuto">Registrar auto</h2>
+        <div class="vista-previa" aria-hidden="true">
+          <div class="placa vacia" id="previaPlaca"><b>ABC 123</b><small>MARCA MODELO</small></div>
+        </div>
+        <div class="campo">
+          <label for="placa">Placa</label>
+          <input id="placa" name="placa" class="input-placa" maxlength="7" autocomplete="off" placeholder="ABC123" required>
+        </div>
+        <div class="fila-2">
+          <div class="campo"><label for="marca">Marca</label><input id="marca" name="marca" placeholder="Toyota" required></div>
+          <div class="campo"><label for="modelo">Modelo</label><input id="modelo" name="modelo" placeholder="Corolla" required></div>
+        </div>
+        <div class="fila-2">
+          <div class="campo"><label for="anio">Año</label><input id="anio" name="anio" type="number" min="1990" max="2030" value="2025" required></div>
+          <div class="campo"><label for="deposito">Depósito</label><input id="deposito" name="deposito" type="number" min="1" step="1000" placeholder="500000" required></div>
+        </div>
+        <div class="campo">
+          <label for="precioPorDia">Precio por día</label>
+          <input id="precioPorDia" name="precioPorDia" type="number" min="1" step="1000" placeholder="150000" required>
+        </div>
+        <div class="acciones-form">
+          <button class="btn amarillo ancho" type="submit" id="btnAuto">Registrar auto</button>
+          <button class="btn claro ancho" type="button" id="cancelarAuto" hidden>Cancelar edición</button>
+        </div>
+      </form>
+
+      <div>
+        <div class="vista-cab" style="margin-bottom:1rem; align-items:center">
+          <h2 style="margin:0" id="tituloFlota">Todos los autos</h2>
+          <div class="segmento" role="group" aria-label="Filtrar autos">
+            <button type="button" data-filtro="todos" aria-pressed="true">Todos</button>
+            <button type="button" data-filtro="disponibles" aria-pressed="false">Disponibles</button>
+          </div>
+        </div>
+        <div class="flota" id="listaFlota" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CLIENTES ===================== -->
+  <section class="vista" id="vista-clientes" aria-labelledby="t-clientes" hidden>
+    <div class="vista-cab">
+      <div>
+        <h1 id="t-clientes">Clientes</h1>
+        <p>El documento y el email no se pueden repetir. Un cliente con un alquiler activo no se puede editar hasta que lo finalice.</p>
+      </div>
+      <form class="buscar" id="buscarCliente" role="search">
+        <label class="sr-only" for="buscarClienteId">Buscar cliente por id</label>
+        <input id="buscarClienteId" type="number" min="1" placeholder="Id del cliente" required>
+        <button class="btn claro chico" type="submit">Buscar</button>
+      </form>
+    </div>
+    <div id="resCliente" class="buscar-res"></div>
+
+    <div class="dos-col">
+      <form class="panel fijo" id="formCliente" novalidate>
+        <h2 id="tituloFormCliente">Registrar cliente</h2>
+        <div class="campo"><label for="nombre">Nombre completo</label><input id="nombre" name="nombre" autocomplete="name" placeholder="Carlos Pérez" required></div>
+        <div class="campo"><label for="documento">Documento</label><input id="documento" name="documento" inputmode="numeric" placeholder="123456789" required></div>
+        <div class="campo"><label for="telefono">Teléfono</label><input id="telefono" name="telefono" type="tel" autocomplete="tel" placeholder="3001234567" required></div>
+        <div class="campo"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" placeholder="carlos@email.com" required></div>
+        <div class="acciones-form">
+          <button class="btn amarillo ancho" type="submit" id="btnCliente">Registrar cliente</button>
+          <button class="btn claro ancho" type="button" id="cancelarCliente" hidden>Cancelar edición</button>
+        </div>
+      </form>
+
+      <div class="tabla-wrap">
+        <table>
+          <thead><tr><th>Id</th><th>Nombre</th><th>Documento</th><th class="ocultar-movil">Contacto</th><th><span class="sr-only">Acciones</span></th></tr></thead>
+          <tbody id="tablaClientes"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ALQUILERES ===================== -->
+  <section class="vista" id="vista-alquileres" aria-labelledby="t-alquileres" hidden>
+    <div class="vista-cab">
+      <div>
+        <h1 id="t-alquileres">Alquileres</h1>
+        <p>Solo se pueden alquilar autos disponibles. El valor total lo calcula el servidor: precio por día por cantidad de días.</p>
+      </div>
+      <form class="buscar" id="buscarAlquiler" role="search">
+        <label class="sr-only" for="buscarAlquilerId">Buscar alquiler por id</label>
+        <input id="buscarAlquilerId" type="number" min="1" placeholder="Id del alquiler" required>
+        <button class="btn claro chico" type="submit">Buscar</button>
+      </form>
+    </div>
+    <div id="resAlquiler" class="buscar-res"></div>
+
+    <div class="dos-col">
+      <form class="panel fijo" id="formAlquiler" novalidate>
+        <h2>Crear alquiler</h2>
+        <div class="campo">
+          <label for="selCliente">Cliente</label>
+          <select id="selCliente" required></select>
+        </div>
+        <div class="campo">
+          <label for="selAuto">Auto disponible</label>
+          <select id="selAuto" required></select>
+          <span class="ayuda">La lista viene de <code>GET /api/autos/disponibles</code>.</span>
+        </div>
+        <div class="campo">
+          <label for="cantidadDias">Cantidad de días</label>
+          <div class="dias">
+            <button type="button" data-dias="-1" aria-label="Quitar un día">−</button>
+            <input id="cantidadDias" type="number" value="5" required>
+            <button type="button" data-dias="1" aria-label="Agregar un día">+</button>
+          </div>
+        </div>
+        <div class="estimado" aria-live="polite">
+          <div class="op" id="estOp">Elige un auto para ver el estimado</div>
+          <div class="total" id="estTotal">—</div>
+          <div class="nota">El valor final lo devuelve el servidor.</div>
+        </div>
+        <button class="btn amarillo ancho" type="submit">Crear alquiler</button>
+        <div id="resultadoAlquiler"></div>
+      </form>
+
+      <div>
+        <div class="vista-cab" style="margin-bottom:1rem; align-items:center">
+          <h2 style="margin:0">Historial de alquileres</h2>
+          <button class="btn claro chico" id="recargarAlquileres" type="button">Actualizar</button>
+        </div>
+        <div class="tabla-wrap">
+          <table>
+            <thead><tr><th>Id</th><th>Auto</th><th>Cliente</th><th class="ocultar-movil">Fechas</th><th class="num">Total</th><th>Estado</th><th><span class="sr-only">Acciones</span></th></tr></thead>
+            <tbody id="tablaAlquileres"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== DEMO GUIADA ===================== -->
+  <section class="vista" id="vista-demo" aria-labelledby="t-demo" hidden>
+    <div class="vista-cab">
+      <div>
+        <h1 id="t-demo">Demo guiada</h1>
+        <p>Ejecuta las 9 pruebas obligatorias del enunciado contra el backend real, en orden. Crea un auto y un cliente nuevos para no tocar tus datos.</p>
+      </div>
+      <button class="btn amarillo" id="ejecutarDemo" type="button">Ejecutar las 9 pruebas</button>
+    </div>
+
+    <div class="demo">
+      <ol class="pasos" id="pasos"></ol>
+      <aside class="tablero" aria-label="Resumen de la demo">
+        <div class="panel">
+          <div class="placa vacia" id="placaDemo"><b>— — —</b><small>AUTO DE PRUEBA</small></div>
+          <span class="chip" id="chipDemo" hidden></span>
+          <p class="texto" id="textoDemo">La placa muestra el estado del auto de prueba en cada paso.</p>
+        </div>
+        <div class="panel">
+          <div class="marcador" id="marcador">0<small> / 9</small></div>
+          <div class="progreso" aria-hidden="true"><i id="barraProgreso"></i></div>
+          <p class="texto" id="resumenDemo">Pruebas superadas</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<div class="toasts" id="toasts" aria-live="assertive"></div>
+
+<div class="velo" id="velo"></div>
+<aside class="cajon" id="cajon" aria-label="Peticiones HTTP" aria-hidden="true">
+  <div class="cajon-cab">
+    <h2>Peticiones HTTP</h2>
+    <button class="cerrar" id="cerrarPeticiones" aria-label="Cerrar">×</button>
+  </div>
+  <div class="cajon-cuerpo" id="listaPeticiones">
+    <p class="sub">Aquí aparece cada llamada al backend con su código de respuesta.</p>
+  </div>
+</aside>
+
+<script>
+/* ============================================================
+   Configuración: rutas tal como están en los controllers
+   ============================================================ */
+const BASE = location.protocol === 'file:' ? 'http://localhost:8080' : '';
+const RUTAS = {
+  autos: '/api/autos',
+  clientes: '/api/cliente',
+  alquileres: '/api/alquiler'
+};
+
+const estado = { autos: [], disponibles: [], clientes: [], alquileres: [], filtro: 'todos', peticiones: [] };
+const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pesos = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+const dinero = n => (n == null || isNaN(n)) ? '—' : pesos.format(n);
+const esperar = ms => new Promise(r => setTimeout(r, reducido ? 0 : ms));
+
+function fecha(f) {
+  if (!f) return '—';
+  const d = Array.isArray(f) ? new Date(f[0], f[1] - 1, f[2]) : new Date(f + 'T00:00:00');
+  return isNaN(d) ? String(f) : d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
+}
+function formatoPlaca(p) {
+  const s = String(p || '').toUpperCase().replace(/\s+/g, '');
+  const m = s.match(/^([A-Z]{3})(\d{2,3}[A-Z]?)$/);
+  return m ? `${m[1]} ${m[2]}` : s;
+}
+const nombreEstado = e => ({ DISPONIBLE: 'Disponible', ALQUILADO: 'Alquilado', MANTENIMIENTO: 'Mantenimiento', ACTIVO: 'Activo', FINALIZADO: 'Finalizado' }[e] || e || '—');
+const chip = e => `<span class="chip ${esc(e)}">${esc(nombreEstado(e))}</span>`;
+
+/* ============================================================
+   Cliente HTTP: registra cada petición y normaliza errores
+   ============================================================ */
+function mensajeError(data, status) {
+  if (status === 0) return 'No hay conexión con el backend.';
+  if (data && typeof data === 'object') {
+    const m = data.message || data.Mensaje || data.mensaje;
+    if (m) return m;
+    if (status >= 500) return 'El servidor tuvo un error interno. Revisa la consola de Spring Boot.';
+    if (data.error) return data.error;
+  }
+  if (typeof data === 'string' && data.trim()) return data.slice(0, 200);
+  return `El servidor respondió con el código ${status}.`;
+}
+
+async function api(metodo, ruta, cuerpo) {
+  const t0 = performance.now();
+  let status = 0, data = null;
+  try {
+    const res = await fetch(BASE + ruta, {
+      method: metodo,
+      headers: cuerpo ? { 'Content-Type': 'application/json' } : {},
+      body: cuerpo ? JSON.stringify(cuerpo) : undefined
+    });
+    status = res.status;
+    const texto = await res.text();
+    try { data = texto ? JSON.parse(texto) : null; } catch { data = texto; }
+  } catch (e) {
+    status = 0;
+  }
+  const r = { metodo, ruta, cuerpo, status, data, ok: status >= 200 && status < 300, ms: Math.round(performance.now() - t0) };
+  r.mensaje = r.ok ? '' : mensajeError(data, status);
+  registrarPeticion(r);
+  marcarConexion(status !== 0);
+  return r;
+}
+
+function marcarConexion(ok) {
+  const el = $('#estadoApi');
+  el.className = 'estado-api ' + (ok ? 'ok' : 'error');
+  $('span', el).textContent = ok ? 'Backend conectado' : 'Sin conexión';
+  $('#avisoConexion').classList.toggle('visible', !ok);
+}
+
+/* ============================================================
+   Toasts
+   ============================================================ */
+function toast(titulo, detalle = '', status) {
+  const t = document.createElement('div');
+  const err = status != null && !(status >= 200 && status < 300);
+  t.className = 'toast' + (err ? ' error' : '');
+  const clase = status ? 'c' + String(status)[0] : 'c0';
+  t.innerHTML = `${status != null ? `<span class="codigo ${clase}">${status || '—'}</span>` : '<span></span>'}<p><strong>${esc(titulo)}</strong>${esc(detalle)}</p>`;
+  $('#toasts').appendChild(t);
+  const visibles = $$('.toast:not(.saliendo)', $('#toasts'));
+  visibles.slice(0, -3).forEach(v => { v.classList.add('saliendo'); setTimeout(() => v.remove(), 320); });
+  setTimeout(() => { t.classList.add('saliendo'); setTimeout(() => t.remove(), 320); }, err ? 6000 : 3500);
+}
+const toastError = (titulo, r) => toast(titulo, r.mensaje, r.status);
+
+/* ============================================================
+   Panel de peticiones
+   ============================================================ */
+function registrarPeticion(r) {
+  estado.peticiones.unshift(r);
+  estado.peticiones = estado.peticiones.slice(0, 40);
+  $('#contPeticiones').textContent = estado.peticiones.length;
+  $('#listaPeticiones').innerHTML = estado.peticiones.map(p => `
+    <details class="peticion">
+      <summary>
+        <span class="metodo ${p.metodo}">${p.metodo}</span>
+        <span class="ruta">${esc(p.ruta)}</span>
+        <span><span class="codigo c${String(p.status)[0]}">${p.status || '—'}</span> <span class="ms">${p.ms} ms</span></span>
+      </summary>
+      ${p.cuerpo ? `<pre class="json">${esc(JSON.stringify(p.cuerpo, null, 2))}</pre>` : ''}
+      <pre class="json">${esc(typeof p.data === 'string' ? p.data : JSON.stringify(p.data, null, 2) ?? '(sin cuerpo)')}</pre>
+    </details>`).join('');
+}
+function abrirCajon(abrir) {
+  $('#cajon').classList.toggle('abierto', abrir);
+  $('#velo').classList.toggle('abierto', abrir);
+  $('#cajon').setAttribute('aria-hidden', String(!abrir));
+  if (abrir) $('#cerrarPeticiones').focus(); else $('#abrirPeticiones').focus();
+}
+$('#abrirPeticiones').onclick = () => abrirCajon(true);
+$('#cerrarPeticiones').onclick = () => abrirCajon(false);
+$('#velo').onclick = () => abrirCajon(false);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#cajon').classList.contains('abierto')) abrirCajon(false); });
+
+/* ============================================================
+   Navegación
+   ============================================================ */
+function irA(vista) {
+  if (!['flota', 'clientes', 'alquileres', 'demo'].includes(vista)) vista = 'flota';
+  $$('.vista').forEach(v => {
+    const activa = v.id === 'vista-' + vista;
+    if (activa && v.hidden) { v.hidden = false; v.classList.remove('entrando'); void v.offsetWidth; v.classList.add('entrando'); }
+    if (!activa) v.hidden = true;
+  });
+  $$('.nav button').forEach(b => b.dataset.ir === vista ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
+  if (location.hash !== '#' + vista) history.replaceState(null, '', '#' + vista);
+  if (vista === 'alquileres') cargarDisponibles();
+  window.scrollTo({ top: 0, behavior: reducido ? 'auto' : 'smooth' });
+}
+$$('.nav button').forEach(b => b.onclick = () => irA(b.dataset.ir));
+window.addEventListener('hashchange', () => irA(location.hash.slice(1)));
+
+/* ============================================================
+   Validación en el formulario (complementa la del backend)
+   ============================================================ */
+function marcarCampo(input, mensaje) {
+  const campo = input.closest('.campo');
+  let err = $('.err', campo);
+  if (mensaje) {
+    input.setAttribute('aria-invalid', 'true');
+    if (!err) { err = document.createElement('span'); err.className = 'err'; campo.appendChild(err); }
+    err.textContent = mensaje;
+  } else {
+    input.removeAttribute('aria-invalid');
+    err?.remove();
+  }
+  return !mensaje;
+}
+function validar(form, reglas) {
+  let ok = true, primero = null;
+  for (const [id, regla] of Object.entries(reglas)) {
+    const input = $('#' + id, form);
+    const msg = regla(input.value.trim());
+    if (!marcarCampo(input, msg)) { ok = false; primero ??= input; }
+  }
+  primero?.focus();
+  return ok;
+}
+const requerido = nombre => v => v ? '' : `${nombre} es obligatorio.`;
+const positivo = nombre => v => (v && Number(v) > 0) ? '' : `${nombre} debe ser mayor que cero.`;
+document.addEventListener('input', e => { if (e.target.matches('[aria-invalid="true"]')) marcarCampo(e.target, ''); });
+
+function ocupado(boton, si) {
+  if (si) { boton.dataset.texto = boton.textContent; boton.disabled = true; boton.innerHTML = '<span class="giro"></span>' + esc(boton.dataset.texto); }
+  else { boton.disabled = false; boton.textContent = boton.dataset.texto; }
+}
+
+/* ============================================================
+   Flota
+   ============================================================ */
+let idsNuevos = new Set();
+let idsCambio = new Set();
+async function cargarAutos() {
+  const [todos, disp] = await Promise.all([api('GET', RUTAS.autos), api('GET', RUTAS.autos + '/disponibles')]);
+  if (todos.ok) estado.autos = todos.data || [];
+  if (disp.ok) estado.disponibles = disp.data || [];
+  pintarFlota();
+  pintarSelectAutos();
+}
+function accionesAuto(a) {
+  if (a.estado === 'DISPONIBLE') return `
+    <div class="auto-acciones">
+      <button class="btn chico claro" data-alquilar="${a.id}">Alquilar</button>
+      <button class="btn chico mantenimiento" data-estado="MANTENIMIENTO" data-auto="${a.id}">Mantenimiento</button>
+    </div>`;
+  if (a.estado === 'MANTENIMIENTO') return `
+    <div class="auto-acciones">
+      <button class="btn chico verde" data-estado="DISPONIBLE" data-auto="${a.id}">Marcar disponible</button>
+    </div>`;
+  return `<p class="auto-nota">Se podrá editar al finalizar su alquiler.</p>`;
+}
+function tarjetaAuto(a) {
+  const clases = ['auto', esc(a.estado), idsNuevos.has(a.id) ? 'nuevo' : '', idsCambio.has(a.id) ? 'cambio' : ''].join(' ');
+  return `
+  <article class="${clases}" data-id="${a.id}">
+    ${a.estado !== 'ALQUILADO' ? `<button class="editar-auto" data-editar-auto="${a.id}" aria-label="Editar ${esc(formatoPlaca(a.placa))}" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg></button>` : ''}
+    <div class="placa"><b>${esc(formatoPlaca(a.placa))}</b><small>${esc((a.marca + ' ' + a.modelo).toUpperCase())}</small></div>
+    <div class="auto-datos">
+      <span class="auto-precio"><strong>${dinero(a.precioPorDia)}</strong> por día</span>
+      ${chip(a.estado)}
+    </div>
+    <div class="auto-pie">
+      <span>Id ${a.id}, año ${esc(a.anio)}</span>
+      <span>Depósito ${dinero(a.deposito)}</span>
+    </div>
+    ${accionesAuto(a)}
+  </article>`;
+}
+function pintarFlota() {
+  const lista = estado.filtro === 'disponibles' ? estado.disponibles : estado.autos;
+  $('#tituloFlota').textContent = estado.filtro === 'disponibles' ? `Disponibles (${lista.length})` : `Todos los autos (${lista.length})`;
+  $("#listaFlota").innerHTML = lista.length
+    ? [...lista].sort((a, b) => b.id - a.id).map(tarjetaAuto).join('')
+    : `<div class="vacio"><strong>${estado.filtro === 'disponibles' ? 'No hay autos disponibles' : 'Aún no hay autos'}</strong>${estado.filtro === 'disponibles' ? 'Finaliza un alquiler o registra un auto nuevo.' : 'Registra el primero con el formulario.'}</div>`;
+  idsNuevos.clear();
+  idsCambio.clear();
+}
+$$('[data-filtro]').forEach(b => b.onclick = () => {
+  estado.filtro = b.dataset.filtro;
+  $$('[data-filtro]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  pintarFlota();
+});
+$("#listaFlota").addEventListener('click', async e => {
+  const lapiz = e.target.closest('[data-editar-auto]');
+  if (lapiz) return editarAuto(estado.autos.find(a => String(a.id) === lapiz.dataset.editarAuto));
+  const cambio = e.target.closest('[data-estado]');
+  if (cambio) {
+    ocupado(cambio, true);
+    const r = await api('PUT', `${RUTAS.autos}/${cambio.dataset.auto}/estado`, { estado: cambio.dataset.estado });
+    if (!r.ok) { ocupado(cambio, false); return toastError('No se cambió el estado', r); }
+    toast(r.data.estado === 'MANTENIMIENTO' ? 'Auto en mantenimiento' : 'Auto disponible',
+      r.data.estado === 'MANTENIMIENTO' ? `${formatoPlaca(r.data.placa)} ya no aparece para alquilar.` : `${formatoPlaca(r.data.placa)} ya se puede alquilar.`, r.status);
+    idsCambio.add(r.data.id);
+    return cargarAutos();
+  }
+  const b = e.target.closest('[data-alquilar]');
+  if (!b) return;
+  irA('alquileres');
+  cargarDisponibles().then(() => { $('#selAuto').value = b.dataset.alquilar; actualizarEstimado(); $('#selCliente').focus(); });
+});
+
+let autoEnEdicion = null;
+function editarAuto(a) {
+  if (!a) return;
+  const f = $('#formAuto');
+  autoEnEdicion = a.id;
+  f.placa.value = a.placa; f.marca.value = a.marca; f.modelo.value = a.modelo;
+  f.anio.value = a.anio; f.deposito.value = a.deposito; f.precioPorDia.value = a.precioPorDia;
+  $$('[aria-invalid]', f).forEach(i => marcarCampo(i, ''));
+  $('#tituloFormAuto').textContent = `Editar auto ${formatoPlaca(a.placa)}`;
+  $('#btnAuto').textContent = 'Guardar cambios';
+  $('#cancelarAuto').hidden = false;
+  f.classList.add('editando');
+  actualizarPrevia();
+  f.scrollIntoView({ block: 'start', behavior: reducido ? 'auto' : 'smooth' });
+  f.placa.focus({ preventScroll: true });
+}
+function salirEdicionAuto() {
+  const f = $('#formAuto');
+  autoEnEdicion = null;
+  f.reset(); f.anio.value = 2025;
+  $$('[aria-invalid]', f).forEach(i => marcarCampo(i, ''));
+  $('#tituloFormAuto').textContent = 'Registrar auto';
+  $('#btnAuto').textContent = 'Registrar auto';
+  $('#cancelarAuto').hidden = true;
+  f.classList.remove('editando');
+  actualizarPrevia();
+}
+$('#cancelarAuto').onclick = salirEdicionAuto;
+
+function actualizarPrevia() {
+  const p = $('#placa').value.trim(), m = ($('#marca').value + ' ' + $('#modelo').value).trim();
+  const previa = $('#previaPlaca');
+  previa.classList.toggle('vacia', !p);
+  $('b', previa).textContent = p ? formatoPlaca(p) : 'ABC 123';
+  $('small', previa).textContent = m ? m.toUpperCase() : 'MARCA MODELO';
+}
+['placa', 'marca', 'modelo'].forEach(id => $('#' + id).addEventListener('input', actualizarPrevia));
+
+$('#formAuto').onsubmit = async e => {
+  e.preventDefault();
+  const f = e.target;
+  if (!validar(f, {
+    placa: requerido('La placa'), marca: requerido('La marca'), modelo: requerido('El modelo'),
+    anio: positivo('El año'), deposito: positivo('El depósito'), precioPorDia: positivo('El precio por día')
+  })) return;
+  const boton = $('button[type=submit]', f);
+  ocupado(boton, true);
+  const editando = autoEnEdicion;
+  const r = await api(editando ? 'PUT' : 'POST', editando ? `${RUTAS.autos}/${editando}` : RUTAS.autos, {
+    placa: f.placa.value.trim().toUpperCase(), marca: f.marca.value.trim(), modelo: f.modelo.value.trim(),
+    anio: Number(f.anio.value), deposito: Number(f.deposito.value), precioPorDia: Number(f.precioPorDia.value)
+  });
+  ocupado(boton, false);
+  if (!r.ok) return toastError(editando ? 'No se guardaron los cambios' : 'No se registró el auto', r);
+  if (editando) {
+    toast('Auto actualizado', `${formatoPlaca(r.data.placa)} quedó con los datos nuevos.`, r.status);
+    idsCambio.add(r.data.id);
+  } else {
+    toast('Auto registrado', `${formatoPlaca(r.data.placa)} entra a la flota como disponible.`, r.status);
+    idsNuevos.add(r.data.id);
+  }
+  salirEdicionAuto();
+  await cargarAutos();
+};
+
+$('#buscarAuto').onsubmit = async e => {
+  e.preventDefault();
+  const id = $('#buscarAutoId').value;
+  const r = await api('GET', `${RUTAS.autos}/${id}`);
+  $('#resAuto').innerHTML = r.ok
+    ? `<div class="ficha"><dl><dt>Placa</dt><dd>${esc(formatoPlaca(r.data.placa))}</dd><dt>Auto</dt><dd>${esc(r.data.marca)} ${esc(r.data.modelo)}, ${esc(r.data.anio)}</dd><dt>Precio por día</dt><dd>${dinero(r.data.precioPorDia)}</dd><dt>Estado</dt><dd>${chip(r.data.estado)}</dd></dl></div>`
+    : `<div class="ficha error">Error ${r.status || 'de conexión'}: ${esc(r.mensaje)}</div>`;
+};
+
+/* ============================================================
+   Clientes
+   ============================================================ */
+let idsClienteNuevos = new Set();
+async function cargarClientes() {
+  const r = await api('GET', RUTAS.clientes);
+  if (r.ok) estado.clientes = r.data || [];
+  pintarClientes();
+  pintarSelectClientes();
+}
+const tieneAlquilerActivo = id => estado.alquileres.some(a => Number(a.clienteId) === Number(id) && a.estado === 'ACTIVO');
+let clienteEnEdicion = null;
+function editarCliente(c) {
+  if (!c) return;
+  const f = $('#formCliente');
+  clienteEnEdicion = c.id;
+  f.nombre.value = c.nombre; f.documento.value = c.documento; f.telefono.value = c.telefono; f.email.value = c.email;
+  $$('[aria-invalid]', f).forEach(i => marcarCampo(i, ''));
+  $('#tituloFormCliente').textContent = `Editar a ${c.nombre}`;
+  $('#btnCliente').textContent = 'Guardar cambios';
+  $('#cancelarCliente').hidden = false;
+  f.classList.add('editando');
+  f.scrollIntoView({ block: 'start', behavior: reducido ? 'auto' : 'smooth' });
+  f.nombre.focus({ preventScroll: true });
+}
+function salirEdicionCliente() {
+  const f = $('#formCliente');
+  clienteEnEdicion = null;
+  f.reset();
+  $$('[aria-invalid]', f).forEach(i => marcarCampo(i, ''));
+  $('#tituloFormCliente').textContent = 'Registrar cliente';
+  $('#btnCliente').textContent = 'Registrar cliente';
+  $('#cancelarCliente').hidden = true;
+  f.classList.remove('editando');
+}
+$('#cancelarCliente').onclick = salirEdicionCliente;
+$('#tablaClientes').addEventListener('click', e => {
+  const b = e.target.closest('[data-editar-cliente]');
+  if (b) editarCliente(estado.clientes.find(c => String(c.id) === b.dataset.editarCliente));
+});
+
+function pintarClientes() {
+  $('#tablaClientes').innerHTML = estado.clientes.length
+    ? [...estado.clientes].sort((a, b) => b.id - a.id).map(c => `
+      <tr class="${idsClienteNuevos.has(c.id) ? 'resaltar' : ''}">
+        <td>${c.id}</td>
+        <td><strong>${esc(c.nombre)}</strong></td>
+        <td>${esc(c.documento)}</td>
+        <td class="ocultar-movil">${esc(c.email)}<span class="sub">${esc(c.telefono)}</span></td>
+        <td>${tieneAlquilerActivo(c.id)
+          ? '<span class="chip ACTIVO" title="Se podrá editar al finalizar su alquiler">Alquiler activo</span>'
+          : `<button class="btn chico claro" data-editar-cliente="${c.id}">Editar</button>`}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="5"><div class="vacio" style="border:0"><strong>Aún no hay clientes</strong>Registra el primero con el formulario.</div></td></tr>`;
+  idsClienteNuevos.clear();
+}
+$('#formCliente').onsubmit = async e => {
+  e.preventDefault();
+  const f = e.target;
+  if (!validar(f, {
+    nombre: requerido('El nombre'), documento: requerido('El documento'), telefono: requerido('El teléfono'),
+    email: v => !v ? 'El email es obligatorio.' : (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v) ? '' : 'Escribe un email válido, como nombre@dominio.com.')
+  })) return;
+  const boton = $('button[type=submit]', f);
+  ocupado(boton, true);
+  const editando = clienteEnEdicion;
+  const r = await api(editando ? 'PUT' : 'POST', editando ? `${RUTAS.clientes}/${editando}` : RUTAS.clientes, {
+    nombre: f.nombre.value, documento: f.documento.value, email: f.email.value, telefono: f.telefono.value
+  });
+  ocupado(boton, false);
+  if (!r.ok) return toastError(editando ? 'No se guardaron los cambios' : 'No se registró el cliente', r);
+  toast(editando ? 'Cliente actualizado' : 'Cliente registrado',
+    editando ? `${r.data.nombre} quedó con los datos nuevos.` : `${r.data.nombre} quedó con el id ${r.data.id}.`, r.status);
+  idsClienteNuevos.add(r.data.id);
+  salirEdicionCliente();
+  await Promise.all([cargarClientes(), cargarAlquileres()]);
+};
+$('#buscarCliente').onsubmit = async e => {
+  e.preventDefault();
+  const id = $('#buscarClienteId').value;
+  const r = await api('GET', `${RUTAS.clientes}/${id}`);
+  $('#resCliente').innerHTML = r.ok
+    ? `<div class="ficha"><dl><dt>Nombre</dt><dd>${esc(r.data.nombre)}</dd><dt>Documento</dt><dd>${esc(r.data.documento)}</dd><dt>Email</dt><dd>${esc(r.data.email)}</dd><dt>Teléfono</dt><dd>${esc(r.data.telefono)}</dd></dl></div>`
+    : `<div class="ficha error">Error ${r.status || 'de conexión'}: ${esc(r.mensaje)}</div>`;
+};
+
+/* ============================================================
+   Alquileres
+   ============================================================ */
+let idsAlquilerResaltar = new Set();
+async function cargarDisponibles() {
+  const r = await api('GET', RUTAS.autos + '/disponibles');
+  if (r.ok) estado.disponibles = r.data || [];
+  pintarSelectAutos();
+}
+async function cargarAlquileres() {
+  const r = await api('GET', RUTAS.alquileres + '/detallados');
+  if (r.ok) estado.alquileres = r.data || [];
+  pintarAlquileres();
+  pintarClientes();
+}
+function pintarSelectClientes() {
+  const sel = $('#selCliente'), previo = sel.value;
+  sel.innerHTML = estado.clientes.length
+    ? '<option value="">Selecciona un cliente</option>' + estado.clientes.map(c => `<option value="${c.id}">${esc(c.nombre)} (doc. ${esc(c.documento)})</option>`).join('')
+    : '<option value="">Primero registra un cliente</option>';
+  if (previo) sel.value = previo;
+}
+function pintarSelectAutos() {
+  const sel = $('#selAuto'), previo = sel.value;
+  sel.innerHTML = estado.disponibles.length
+    ? '<option value="">Selecciona un auto</option>' + estado.disponibles.map(a => `<option value="${a.id}">${esc(formatoPlaca(a.placa))}, ${esc(a.marca)} ${esc(a.modelo)} (${dinero(a.precioPorDia)} por día)</option>`).join('')
+    : '<option value="">No hay autos disponibles</option>';
+  if (previo && estado.disponibles.some(a => String(a.id) === previo)) sel.value = previo;
+  actualizarEstimado();
+}
+function actualizarEstimado() {
+  const auto = estado.disponibles.find(a => String(a.id) === $('#selAuto').value);
+  const dias = Number($('#cantidadDias').value);
+  if (!auto) { $('#estOp').textContent = 'Elige un auto para ver el estimado'; $('#estTotal').textContent = '—'; return; }
+  if (!(dias > 0)) { $('#estOp').textContent = 'La cantidad de días debe ser mayor que cero'; $('#estTotal').textContent = '—'; return; }
+  $('#estOp').textContent = `${dinero(auto.precioPorDia)} × ${dias} ${dias === 1 ? 'día' : 'días'}`;
+  $('#estTotal').textContent = dinero(auto.precioPorDia * dias);
+}
+$('#selAuto').onchange = actualizarEstimado;
+$('#cantidadDias').oninput = actualizarEstimado;
+$$('[data-dias]').forEach(b => b.onclick = () => {
+  const input = $('#cantidadDias');
+  input.value = Math.max(1, (Number(input.value) || 0) + Number(b.dataset.dias));
+  actualizarEstimado();
+});
+
+function pintarAlquileres() {
+  $('#tablaAlquileres').innerHTML = estado.alquileres.length
+    ? [...estado.alquileres].sort((a, b) => b.id - a.id).map(a => `
+      <tr class="${idsAlquilerResaltar.has(a.id) ? 'resaltar' : ''}">
+        <td>${a.id}</td>
+        <td><span class="placa mini"><b>${esc(formatoPlaca(a.placa ?? a.Placa))}</b></span></td>
+        <td>${esc(a.clienteNombre)}<span class="sub">doc. ${esc(a.documento)}</span></td>
+        <td class="ocultar-movil">${fecha(a.fechaInicio)} a ${fecha(a.fechaFin)}<span class="sub">${a.cantidadDias} ${a.cantidadDias === 1 ? 'día' : 'días'}</span></td>
+        <td class="num"><strong>${dinero(a.valorTotal)}</strong></td>
+        <td>${chip(a.estado)}</td>
+        <td>${a.estado === 'ACTIVO' ? `<button class="btn chico" data-finalizar="${a.id}">Finalizar</button>` : ''}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="7"><div class="vacio" style="border:0"><strong>Aún no hay alquileres</strong>Crea el primero con el formulario.</div></td></tr>`;
+  idsAlquilerResaltar.clear();
+}
+
+$('#formAlquiler').onsubmit = async e => {
+  e.preventDefault();
+  const clienteId = $('#selCliente').value, autoId = $('#selAuto').value, dias = Number($('#cantidadDias').value);
+  let ok = marcarCampo($('#selCliente'), clienteId ? '' : 'Selecciona un cliente.');
+  ok = marcarCampo($('#selAuto'), autoId ? '' : 'Selecciona un auto disponible.') && ok;
+  ok = marcarCampo($('#cantidadDias'), dias > 0 ? '' : 'La cantidad de días debe ser mayor que cero.') && ok;
+  if (!ok) return;
+  const boton = $('button[type=submit]', e.target);
+  ocupado(boton, true);
+  const r = await api('POST', RUTAS.alquileres, { clienteId: Number(clienteId), autoId: Number(autoId), cantidadDias: dias });
+  ocupado(boton, false);
+  if (!r.ok) return toastError('No se creó el alquiler', r);
+  const auto = estado.disponibles.find(a => String(a.id) === autoId);
+  $('#resultadoAlquiler').innerHTML = `<div class="resultado" role="status">Alquiler ${r.data.id} creado<strong>${dinero(r.data.valorTotal)}</strong>${auto ? `${esc(formatoPlaca(auto.placa))} pasó a alquilado.` : ''}</div>`;
+  toast('Alquiler creado', `Total calculado por el servidor: ${dinero(r.data.valorTotal)}.`, r.status);
+  idsAlquilerResaltar.add(r.data.id);
+  $('#selAuto').value = '';
+  await Promise.all([cargarAlquileres(), cargarAutos()]);
+};
+
+$('#tablaAlquileres').addEventListener('click', async e => {
+  const b = e.target.closest('[data-finalizar]');
+  if (!b) return;
+  ocupado(b, true);
+  const r = await api('PUT', `${RUTAS.alquileres}/${b.dataset.finalizar}/finalizar`);
+  if (!r.ok) { ocupado(b, false); return toastError('No se finalizó el alquiler', r); }
+  toast('Alquiler finalizado', 'El auto volvió a estar disponible.', r.status);
+  idsAlquilerResaltar.add(Number(b.dataset.finalizar));
+  await Promise.all([cargarAlquileres(), cargarAutos()]);
+});
+$('#recargarAlquileres').onclick = cargarAlquileres;
+
+$('#buscarAlquiler').onsubmit = async e => {
+  e.preventDefault();
+  const id = $('#buscarAlquilerId').value;
+  const r = await api('GET', `${RUTAS.alquileres}/${id}`);
+  $('#resAlquiler').innerHTML = r.ok
+    ? `<div class="ficha"><dl><dt>Cliente</dt><dd>Id ${r.data.clienteId}</dd><dt>Auto</dt><dd>Id ${r.data.autoId}</dd><dt>Fechas</dt><dd>${fecha(r.data.fechaInicio)} a ${fecha(r.data.fechaFin)} (${r.data.cantidadDias} días)</dd><dt>Total</dt><dd>${dinero(r.data.valorTotal)}</dd><dt>Estado</dt><dd>${chip(r.data.estado)}</dd></dl></div>`
+    : `<div class="ficha error">Error ${r.status || 'de conexión'}: ${esc(r.mensaje)}</div>`;
+};
+
+/* ============================================================
+   Demo guiada: las 9 pruebas de la sección 26
+   ============================================================ */
+const PASOS = [
+  { titulo: 'Crear un auto', metodo: 'POST', ruta: () => RUTAS.autos, espera: 201 },
+  { titulo: 'Consultar el auto', metodo: 'GET', ruta: c => `${RUTAS.autos}/${c.autoId}`, espera: 200 },
+  { titulo: 'Crear un cliente', metodo: 'POST', ruta: () => RUTAS.clientes, espera: 201 },
+  { titulo: 'Crear un alquiler', metodo: 'POST', ruta: () => RUTAS.alquileres, espera: 201 },
+  { titulo: 'Comprobar que el auto pasó a alquilado', metodo: 'GET', ruta: c => `${RUTAS.autos}/${c.autoId}`, espera: 200 },
+  { titulo: 'Intentar alquilar otra vez el mismo auto', metodo: 'POST', ruta: () => RUTAS.alquileres, espera: 409 },
+  { titulo: 'Finalizar el alquiler', metodo: 'PUT', ruta: c => `${RUTAS.alquileres}/${c.alquilerId}/finalizar`, espera: 200 },
+  { titulo: 'Comprobar que el auto volvió a disponible', metodo: 'GET', ruta: c => `${RUTAS.autos}/${c.autoId}`, espera: 200 },
+  { titulo: 'Intentar finalizar otra vez el alquiler', metodo: 'PUT', ruta: c => `${RUTAS.alquileres}/${c.alquilerId}/finalizar`, espera: 409 }
+];
+
+function pintarPasos(ctx = {}) {
+  $('#pasos').innerHTML = PASOS.map((p, i) => `
+    <li class="paso" id="paso-${i}">
+      <div class="paso-cab">
+        <span class="paso-num" aria-hidden="true">${i + 1}</span>
+        <div><span class="paso-titulo">${p.titulo}</span><span class="paso-ruta"><b>${p.metodo}</b> ${esc(p.ruta({ autoId: '{id}', alquilerId: '{id}' }))}</span></div>
+        <div class="paso-res"><span class="esperado">Espera ${p.espera}</span></div>
+      </div>
+    </li>`).join('');
+}
+pintarPasos();
+
+function letrasAzar(n) { return Array.from({ length: n }, () => 'BCDFGHJKLMNPRSTVWXYZ'[Math.floor(Math.random() * 20)]).join(''); }
+
+function placaDemo(estadoAuto, golpe = true) {
+  const placa = $('#placaDemo'), c = $('#chipDemo');
+  if (estadoAuto) {
+    c.hidden = false;
+    c.className = 'chip ' + estadoAuto;
+    c.textContent = nombreEstado(estadoAuto);
+  }
+  if (golpe && !reducido) { placa.classList.remove('golpe'); void placa.offsetWidth; placa.classList.add('golpe'); }
+}
+
+async function ejecutarDemo() {
+  const boton = $('#ejecutarDemo');
+  ocupado(boton, true);
+  pintarPasos();
+  $('#barraProgreso').style.width = '0';
+  $('#marcador').innerHTML = '0<small> / 9</small>';
+  $('#resumenDemo').textContent = 'Ejecutando…';
+  $('#chipDemo').hidden = true;
+
+  const sello = Date.now().toString().slice(-6);
+  const ctx = {
+    auto: { placa: letrasAzar(3) + sello.slice(-3), marca: 'Toyota', modelo: 'Corolla', anio: 2025, deposito: 500000, precioPorDia: 150000 },
+    cliente: { nombre: 'Cliente de prueba', documento: '9' + sello + Math.floor(Math.random() * 1000), telefono: '3001234567', email: `demo${sello}@autorent.co` },
+    dias: 5
+  };
+  const placa = $('#placaDemo');
+  placa.classList.remove('vacia');
+  $('b', placa).textContent = formatoPlaca(ctx.auto.placa);
+  $('small', placa).textContent = 'TOYOTA COROLLA';
+  $('#textoDemo').textContent = 'Auto de prueba creado para esta demo.';
+
+  let superadas = 0;
+  for (let i = 0; i < PASOS.length; i++) {
+    const p = PASOS[i], li = $('#paso-' + i);
+    li.classList.add('corriendo');
+    li.scrollIntoView({ block: 'nearest', behavior: reducido ? 'auto' : 'smooth' });
+    await esperar(450);
+
+    let cuerpo;
+    if (i === 0) cuerpo = ctx.auto;
+    if (i === 2) cuerpo = ctx.cliente;
+    if (i === 3 || i === 5) cuerpo = { clienteId: ctx.clienteId, autoId: ctx.autoId, cantidadDias: ctx.dias };
+
+    const r = await api(p.metodo, p.ruta(ctx), cuerpo);
+    let ok = r.status === p.espera, detalle = '';
+
+    if (i === 0 && r.ok) { ctx.autoId = r.data.id; placaDemo(r.data.estado); detalle = `Auto ${r.data.id} creado como ${nombreEstado(r.data.estado).toLowerCase()}.`; }
+    if (i === 1 && r.ok) detalle = `${formatoPlaca(r.data.placa)} está ${nombreEstado(r.data.estado).toLowerCase()}.`;
+    if (i === 2 && r.ok) { ctx.clienteId = r.data.id; detalle = `Cliente ${r.data.id} registrado.`; }
+    if (i === 3 && r.ok) {
+      ctx.alquilerId = r.data.id;
+      const esperado = ctx.auto.precioPorDia * ctx.dias;
+      ok = ok && r.data.valorTotal === esperado;
+      detalle = `Alquiler ${r.data.id}: ${dinero(ctx.auto.precioPorDia)} × ${ctx.dias} días = ${dinero(r.data.valorTotal)}.` + (r.data.valorTotal === esperado ? '' : ` Se esperaba ${dinero(esperado)}.`);
+      placaDemo('ALQUILADO');
+      $('#textoDemo').textContent = 'Al crear el alquiler, el auto pasa a alquilado.';
+    }
+    if (i === 4 && r.ok) { ok = ok && r.data.estado === 'ALQUILADO'; detalle = `Estado actual: ${nombreEstado(r.data.estado).toLowerCase()}.`; }
+    if (i === 5) detalle = r.status === 409 ? `Rechazado como se esperaba: ${r.mensaje}` : `Se esperaba un 409 y llegó ${r.status}. ${r.mensaje}`;
+    if (i === 6 && r.ok) { detalle = `Alquiler ${ctx.alquilerId} finalizado.`; placaDemo('DISPONIBLE'); $('#textoDemo').textContent = 'Al finalizar, el auto vuelve a disponible.'; }
+    if (i === 7 && r.ok) { ok = ok && r.data.estado === 'DISPONIBLE'; detalle = `Estado actual: ${nombreEstado(r.data.estado).toLowerCase()}.`; }
+    if (i === 8) detalle = r.status === 409 ? `Rechazado como se esperaba: ${r.mensaje}` : `Se esperaba un 409 y llegó ${r.status}. ${r.mensaje}`;
+    if (!detalle && !r.ok) detalle = r.mensaje;
+
+    li.classList.remove('corriendo');
+    li.classList.add(ok ? 'paso-ok' : 'paso-falla');
+    $('.paso-num', li).textContent = ok ? '✓' : '✕';
+    $('.paso-res', li).innerHTML = `<span class="codigo c${String(r.status)[0]}">${r.status || '—'}</span><span class="esperado">Espera ${p.espera}</span>`;
+    li.insertAdjacentHTML('beforeend', `
+      <div class="paso-det">
+        <p>${esc(detalle)}</p>
+        <details><summary>Ver petición y respuesta</summary>
+          ${cuerpo ? `<pre class="json">${esc(JSON.stringify(cuerpo, null, 2))}</pre>` : ''}
+          <pre class="json">${esc(typeof r.data === 'string' ? r.data : JSON.stringify(r.data, null, 2) ?? '(sin cuerpo)')}</pre>
+        </details>
+      </div>`);
+
+    if (ok) superadas++;
+    $('#marcador').innerHTML = `${superadas}<small> / 9</small>`;
+    $('#barraProgreso').style.width = `${(superadas / 9) * 100}%`;
+
+    if (r.status === 0) { $('#resumenDemo').textContent = 'Se detuvo: no hay conexión con el backend.'; break; }
+    if (!ok && [0, 2, 3].includes(i)) { $('#resumenDemo').textContent = 'Se detuvo: los pasos siguientes dependen de este.'; break; }
+    await esperar(250);
+  }
+
+  if (superadas === 9) {
+    $('#resumenDemo').textContent = 'Las 9 pruebas pasaron.';
+    toast('Demo completa', 'Las 9 pruebas obligatorias pasaron.', 200);
+  } else if (!/Se detuvo/.test($('#resumenDemo').textContent)) {
+    $('#resumenDemo').textContent = `${9 - superadas} prueba${9 - superadas === 1 ? '' : 's'} no dieron el resultado esperado.`;
+  }
+  ocupado(boton, false);
+  boton.textContent = 'Ejecutar otra vez';
+  cargarAutos(); cargarClientes(); cargarAlquileres();
+}
+$('#ejecutarDemo').onclick = ejecutarDemo;
+
+/* ============================================================
+   Inicio
+   ============================================================ */
+irA(location.hash.slice(1) || 'flota');
+cargarAutos();
+cargarClientes();
+cargarAlquileres();
+</script>
+</body>
+</html>
